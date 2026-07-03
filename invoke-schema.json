@@ -1,0 +1,82 @@
+{
+  "description": "Lambda invoke payload for reactoo-html2video",
+  "properties": {
+    "html": {
+      "type": "string",
+      "description": "Bundled template path in the container (local/dev). Mutually exclusive with htmlS3Key."
+    },
+    "htmlS3Bucket": {
+      "type": "string",
+      "description": "S3 bucket for the HTML template input. Required with htmlS3Key."
+    },
+    "htmlS3Key": {
+      "type": "string",
+      "description": "S3 key for the HTML template input."
+    },
+    "inputS3Bucket": {
+      "type": "string",
+      "description": "Alias for htmlS3Bucket."
+    },
+    "outputS3Bucket": {
+      "type": "string",
+      "description": "S3 bucket for the rendered output. Falls back to RENDER_BUCKET env if omitted."
+    },
+    "outputS3Key": {
+      "type": "string",
+      "description": "S3 key for the rendered file. If omitted but outputS3Bucket is set, auto-generates under renders/."
+    },
+    "format": {
+      "type": "string",
+      "enum": ["webm", "prores", "apng", "mp4"],
+      "description": "Output format (default: webm). Also inferred from outputFileName or outputS3Key extension."
+    },
+    "outputFormat": {
+      "type": "string",
+      "enum": ["webm", "prores", "apng", "mp4"],
+      "description": "Alias for format."
+    },
+    "outputFileName": {
+      "type": "string",
+      "description": "Local filename before upload (default: overlay-transparent.<ext> for chosen format)."
+    },
+    "width": {
+      "type": "integer",
+      "description": "Output video width in pixels (default: 1920)."
+    },
+    "height": {
+      "type": "integer",
+      "description": "Output video height in pixels (default: 1080)."
+    },
+    "templateWidth": {
+      "type": "integer",
+      "description": "Template design width to scale from (default: 1920)."
+    },
+    "templateHeight": {
+      "type": "integer",
+      "description": "Template design height to scale from (default: 1080)."
+    },
+    "fps": {
+      "type": "integer",
+      "description": "Frame rate (default: 25)."
+    },
+    "video": {
+      "type": "object",
+      "description": "Alternative grouping for width, height, templateWidth, templateHeight, fps.",
+      "properties": {
+        "width": { "type": "integer" },
+        "height": { "type": "integer" },
+        "templateWidth": { "type": "integer" },
+        "templateHeight": { "type": "integer" },
+        "fps": { "type": "integer" },
+        "format": {
+          "type": "string",
+          "enum": ["webm", "prores", "apng", "mp4"]
+        }
+      }
+    },
+    "graphic": {
+      "type": "object",
+      "description": "Partial GRAPHIC override — see graphic-schema.json."
+    }
+  }
+}

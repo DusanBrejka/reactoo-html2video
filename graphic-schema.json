@@ -1,0 +1,82 @@
+{
+  "description": "Partial override merged into the template GRAPHIC const (deep merge per section).",
+  "properties": {
+    "pageTitle": { "type": "string" },
+    "fonts": {
+      "type": "object",
+      "properties": {
+        "body": { "type": "string" },
+        "display": { "type": "string" },
+        "mono": { "type": "string" }
+      }
+    },
+    "colors": {
+      "type": "object",
+      "properties": {
+        "accent": { "type": "string" },
+        "accentDark": { "type": "string" },
+        "textPrimary": { "type": "string" },
+        "textMuted": { "type": "string" },
+        "playerFirstName": { "type": "string" },
+        "awayTeam": { "type": "string" },
+        "awayScore": { "type": "string" },
+        "crestText": { "type": "string" },
+        "crestBorder": { "type": "string" },
+        "timeBadgeText": { "type": "string" },
+        "competitionTagBg": { "type": "string" },
+        "competitionTagBorder": { "type": "string" },
+        "competitionIconBg": { "type": "string" },
+        "homeCrestBg": { "type": "string" },
+        "homeTeamIconBg": { "type": "string" },
+        "homeTeamIconBorder": { "type": "string" },
+        "awayTeamIconBg": { "type": "string" },
+        "awayTeamIconBorder": { "type": "string" },
+        "playerPanelBg": { "type": "string" },
+        "scorePanelBg": { "type": "string" }
+      }
+    },
+    "images": {
+      "type": "object",
+      "properties": {
+        "competitionIcon": { "type": "string", "description": "URL or data URI" },
+        "homeCrest": { "type": "string" },
+        "homeTeamIcon": { "type": "string" },
+        "awayTeamIcon": { "type": "string" }
+      }
+    },
+    "text": {
+      "type": "object",
+      "properties": {
+        "competitionName": { "type": "string" },
+        "competitionRound": { "type": "string" },
+        "crestLabel": { "type": "string" },
+        "crestAbbrev": { "type": "string" },
+        "goalLabel": { "type": "string" },
+        "goalTime": { "type": "string" },
+        "playerFirstName": { "type": "string" },
+        "playerSurname": { "type": "string" },
+        "homeTeamName": { "type": "string" },
+        "homeScore": { "type": "string" },
+        "awayTeamName": { "type": "string" },
+        "awayScore": { "type": "string" }
+      }
+    },
+    "animation": {
+      "type": "object",
+      "properties": {
+        "competitionTag": { "type": "number" },
+        "crestPanel": { "type": "number" },
+        "playerPanel": { "type": "number" },
+        "scorePanel": { "type": "number" },
+        "goalMeta": { "type": "number" },
+        "playerName": { "type": "number" },
+        "homeScore": { "type": "number" },
+        "awayScore": { "type": "number" },
+        "shadow": { "type": "number" },
+        "hold": { "type": "number" },
+        "exitBar": { "type": "number" },
+        "exitTag": { "type": "number" }
+      }
+    }
+  }
+}

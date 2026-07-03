@@ -1,0 +1,120 @@
+# HTML overlay template → video (WebM / ProRes / APNG / MP4). Zip Lambda + layers.
+#
+# Deploy:
+#   npm install
+#   npm run deploy
+#
+# Invoke:
+#   npx serverless invoke -f render --stage dev3 --region eu-central-1 --data file://examples/invoke-s3-swpl-defaults.json
+#
+# See invoke-schema.json and graphic-schema.json.
+
+service: reactoo-html2video
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  architecture: x86_64
+  region: ${opt:region, 'eu-central-1'}
+  stage: ${opt:stage, 'dev3'}
+  timeout: 300
+  memorySize: 10240
+  versionFunctions: false
+  environment:
+    STAGE: ${self:provider.stage}
+    RENDER_BUCKET: ${self:custom.renderBucket}
+    HOME: /tmp
+    FFMPEG_PATH: /opt/bin/ffmpeg
+    CHROMIUM_PATH: /opt/nodejs/node_modules/@sparticuz/chromium/bin
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+          Resource:
+            - arn:aws:s3:::*
+            - arn:aws:s3:::*/*
+
+custom:
+  renderBucket: reactoo-html2video-${self:provider.stage}-${aws:accountId}
+
+package:
+  individually: true
+  patterns:
+    - '!.serverless/**'
+    - '!.git/**'
+    - '!frames/**'
+    - '!output/**'
+    - '!artifacts/**'
+    - '!scripts/**'
+    - '!Dockerfile'
+    - '!.dockerignore'
+    - '!render.ps1'
+    - '!examples/**'
+    - '!node_modules/serverless/**'
+    - '!node_modules/@serverless/**'
+    - '!node_modules/@aws-sdk/**'
+    - '!node_modules/aws-sdk/**'
+    - handler.js
+    - render-transparent-webm.js
+    - overlay-render-runtime.js
+    - graphic-schema.json
+    - invoke-schema.json
+    - source/**
+    - node_modules/**
+
+functions:
+  render:
+    handler: handler.render
+    description: Render HTML overlay templates to video (WebM, ProRes, APNG, MP4) with optional GRAPHIC overrides
+    timeout: 300
+    memorySize: 10240
+    ephemeralStorageSize: 2048
+    layers:
+      - !Ref ChromiumLambdaLayer
+      - !Ref FfmpegLambdaLayer
+
+layers:
+  chromium:
+    name: ${self:service}-chromium-${self:provider.stage}
+    description: Sparticuz Chromium v121 for Puppeteer on Lambda
+    package:
+      artifact: artifacts/chromium-v121.0.0-layer.zip
+    compatibleRuntimes:
+      - nodejs16.x
+    compatibleArchitectures:
+      - x86_64
+  ffmpeg:
+    name: ${self:service}-ffmpeg-${self:provider.stage}
+    description: Linux static ffmpeg for video encode
+    path: artifacts/ffmpeg-layer
+    compatibleRuntimes:
+      - nodejs16.x
+    compatibleArchitectures:
+      - x86_64
+
+resources:
+  Resources:
+    ReactooHtml2videoBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.renderBucket}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+
+  Outputs:
+    ReactooHtml2videoBucketName:
+      Value: ${self:custom.renderBucket}
+    ReactooHtml2videoFunctionArn:
+      Value: !GetAtt RenderLambdaFunction.Arn

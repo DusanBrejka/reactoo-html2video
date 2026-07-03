@@ -1,0 +1,24 @@
+{
+  "htmlS3Bucket": "my-templates-bucket",
+  "htmlS3Key": "templates/goal-lower-third.html",
+  "outputS3Bucket": "my-renders-bucket",
+  "outputS3Key": "renders/example.webm",
+  "width": 1280,
+  "height": 720,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25,
+  "graphic": {
+    "text": {
+      "playerSurname": "SMITH",
+      "playerFirstName": "ALEX",
+      "homeScore": "3",
+      "awayScore": "2",
+      "goalTime": "67'"
+    },
+    "animation": {
+      "hold": 5,
+      "competitionTag": 0.5
+    }
+  }
+}

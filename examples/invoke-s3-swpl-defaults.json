@@ -1,0 +1,10 @@
+{
+  "htmlS3Bucket": "YOUR_RENDER_BUCKET",
+  "htmlS3Key": "templates/SWPL_landspace_1.html",
+  "outputS3Key": "renders/swpl-defaults-1080p.webm",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25
+}

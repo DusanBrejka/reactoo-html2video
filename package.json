@@ -1,0 +1,22 @@
+{
+  "name": "reactoo-html2video",
+  "private": true,
+  "description": "Render HTML overlay templates to video (WebM, ProRes, APNG, MP4) — Lambda + local CLI",
+  "scripts": {
+    "predeploy": "node scripts/fetch-ffmpeg.js && node scripts/fetch-chromium-layer.js && node scripts/build-ffmpeg-layer.js",
+    "render": "node render-transparent-webm.js",
+    "deploy": "npm run predeploy && serverless deploy",
+    "invoke": "serverless invoke -f render",
+    "check-exit": "node scripts/check-exit-phase.js"
+  },
+  "engines": {
+    "node": ">=16.13.2"
+  },
+  "dependencies": {
+    "@sparticuz/chromium-min": "^121.0.0",
+    "puppeteer-core": "^21.11.0"
+  },
+  "devDependencies": {
+    "serverless": "^3.38.0"
+  }
+}

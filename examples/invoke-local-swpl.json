@@ -1,0 +1,9 @@
+{
+  "html": "source/SWPL_landspace_1.html",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25,
+  "outputFileName": "swpl-defaults-1080p.webm"
+}

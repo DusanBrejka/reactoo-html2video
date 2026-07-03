@@ -1,0 +1,22 @@
+node_modules/
+.idea/
+frames/
+output/
+.serverless/
+.lambda-staging/
+
+# Downloaded deploy artifacts (npm run predeploy)
+artifacts/bin/
+artifacts/ffmpeg-layer/
+artifacts/*.zip
+
+# Local render / invoke scratch
+*.webm
+*.mov
+*.apng
+*.mp4
+out*.json
+out-*.json
+out-invoke-*.json
+.benchmark-*
+template.render.html
