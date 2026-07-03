@@ -3,23 +3,17 @@
 const childProcess = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { aws, awsRaw, renderFunctionName, resolveAwsPath } = require('./aws-cli');
 
 const ROOT = path.join(__dirname, '..');
 const REGION = 'eu-central-1';
-const FUNCTION = 'reactoo-html2video-dev3-render';
-const LOG_GROUP = '/aws/lambda/reactoo-html2video-dev3-render';
+const STAGE = 'dev3';
+const FUNCTION = renderFunctionName(STAGE);
+const LOG_GROUP = '/aws/lambda/' + FUNCTION;
 const MEMORY_SIZES = [1024, 2048, 3008, 4096, 6144, 8192, 10240];
 const GB_SECOND_USD = 0.0000166667;
 const REQUEST_USD = 0.20 / 1000000;
 const PAYLOAD_TEMPLATE = JSON.parse(fs.readFileSync(path.join(ROOT, 'examples', 'invoke-benchmark.json'), 'utf8'));
-
-function aws(args) {
-  const out = childProcess.execFileSync('aws', args.concat(['--region', REGION, '--output', 'json']), {
-    encoding: 'utf8',
-    maxBuffer: 20 * 1024 * 1024
-  });
-  return JSON.parse(out || '{}');
-}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -44,7 +38,7 @@ function fetchLatestReport(afterMs) {
       '--start-time', String(afterMs),
       '--filter-pattern', 'REPORT',
       '--limit', '5'
-    ]);
+    ], { region: REGION });
     const messages = (events.events || []).map((e) => e.message).filter(Boolean);
     if (messages.length) {
       return parseReport(messages[messages.length - 1]);
@@ -65,7 +59,7 @@ async function benchmarkMemory(memoryMb) {
     'lambda', 'update-function-configuration',
     '--function-name', FUNCTION,
     '--memory-size', String(memoryMb)
-  ]);
+  ], { region: REGION });
   await sleep(3000);
 
   const payload = Object.assign({}, PAYLOAD_TEMPLATE, {
@@ -77,14 +71,13 @@ async function benchmarkMemory(memoryMb) {
   const afterMs = Date.now() - 5000;
   const wallStart = Date.now();
   const outFile = path.join(ROOT, '.benchmark-response.json');
-  childProcess.execFileSync('aws', [
+  awsRaw([
     'lambda', 'invoke',
     '--function-name', FUNCTION,
     '--payload', 'fileb://' + payloadPath.replace(/\\/g, '/'),
     '--cli-read-timeout', '300',
-    outFile,
-    '--region', REGION
-  ], { stdio: 'pipe' });
+    outFile
+  ], { region: REGION });
   const wallMs = Date.now() - wallStart;
   const responseBody = fs.readFileSync(outFile, 'utf8');
   if (responseBody.indexOf('errorType') !== -1) {

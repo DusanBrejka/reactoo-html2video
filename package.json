@@ -6,7 +6,9 @@
     "predeploy": "node scripts/fetch-ffmpeg.js && node scripts/fetch-chromium-layer.js && node scripts/build-ffmpeg-layer.js",
     "render": "node render-transparent-webm.js",
     "deploy": "npm run predeploy && serverless deploy",
-    "invoke": "serverless invoke -f render",
+    "upload-template": "node scripts/upload-template.js",
+    "invoke": "node scripts/invoke-render.js",
+    "smoke": "node scripts/upload-template.js && node scripts/invoke-render.js",
     "check-exit": "node scripts/check-exit-phase.js"
   },
   "engines": {

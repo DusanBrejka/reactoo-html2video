@@ -19,4 +19,5 @@ out*.json
 out-*.json
 out-invoke-*.json
 .benchmark-*
+.invoke-*
 template.render.html
