@@ -273,6 +273,49 @@ function injectGraphicOverrideSupport(html) {
   return html;
 }
 
+function inlineLocalScriptRefs(html, sourcePath) {
+  const sourceDir = path.dirname(sourcePath);
+  return html.replace(/<script\s+src=["']([^"']+)["']\s*><\/script>/gi, (match, src) => {
+    if (/^(?:https?:)?\/\//i.test(src) || src.startsWith('data:')) {
+      return match;
+    }
+    const abs = path.resolve(sourceDir, src);
+    if (!fs.existsSync(abs)) {
+      throw new Error('Script not found for template: ' + src + ' (resolved ' + abs + ')');
+    }
+    return '<script>\n' + fs.readFileSync(abs, 'utf8') + '\n</script>';
+  });
+}
+
+function injectRenderArmHook(html) {
+  if (html.includes('__RENDER_ARMED__')) {
+    return html;
+  }
+  const hook = [
+    '<script>',
+    '(function () {',
+    '  function armRender() {',
+    '    if (window.__RENDER_WAIT_FOR_GO__) {',
+    '      window.__RENDER_ARMED__ = true;',
+    '    }',
+    '  }',
+    '  if (typeof preloadImages === \'function\' && window.GRAPHIC && window.GRAPHIC.images) {',
+    '    var urls = Object.values(window.GRAPHIC.images).filter(Boolean);',
+    '    if (urls.length) {',
+    '      preloadImages(urls).then(armRender);',
+    '      return;',
+    '    }',
+    '  }',
+    '  armRender();',
+    '})();',
+    '</script>'
+  ].join('\n');
+  if (html.includes('</body>')) {
+    return html.replace('</body>', hook + '\n</body>');
+  }
+  return html + hook;
+}
+
 function patchHtmlForRender(html) {
   const graphicHook = 'window.GRAPHIC = GRAPHIC;';
   if (!html.includes(graphicHook)) {
@@ -305,11 +348,14 @@ function patchHtmlForRender(html) {
 
   html = injectGraphicOverrideSupport(html);
   html = injectOverlayRuntime(html);
+  html = injectRenderArmHook(html);
   return html;
 }
 
 function prepareHtmlForRender(sourcePath, workDir) {
-  const html = patchHtmlForRender(fs.readFileSync(sourcePath, 'utf8'));
+  let html = fs.readFileSync(sourcePath, 'utf8');
+  html = inlineLocalScriptRefs(html, sourcePath);
+  html = patchHtmlForRender(html);
   fs.mkdirSync(workDir, { recursive: true });
   const dest = path.join(workDir, 'template.render.html');
   fs.writeFileSync(dest, html, 'utf8');
@@ -347,18 +393,36 @@ function rimraf(dir) {
 }
 
 function findFfmpegExecutable() {
-  if (process.env.FFMPEG_PATH && fs.existsSync(process.env.FFMPEG_PATH)) {
-    return process.env.FFMPEG_PATH;
+  const candidates = [];
+
+  if (process.env.FFMPEG_PATH) {
+    candidates.push(process.env.FFMPEG_PATH);
   }
-  const bundled = path.join(ROOT, 'bin', 'ffmpeg');
-  if (fs.existsSync(bundled)) {
-    return bundled;
+
+  const bundled = path.join(ROOT, 'bin', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg');
+  candidates.push(bundled);
+
+  // artifacts/bin/ffmpeg is the Linux static build from npm run predeploy (Lambda only).
+  if (process.platform !== 'win32') {
+    candidates.push(path.join(ROOT, 'artifacts', 'bin', 'ffmpeg'));
   }
-  const artifactsBundled = path.join(ROOT, 'artifacts', 'bin', 'ffmpeg');
-  if (fs.existsSync(artifactsBundled)) {
-    return artifactsBundled;
+
+  candidates.push(process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg');
+
+  for (let i = 0; i < candidates.length; i++) {
+    const ffmpeg = candidates[i];
+    if (ffmpeg !== 'ffmpeg' && ffmpeg !== 'ffmpeg.exe' && !fs.existsSync(ffmpeg)) {
+      continue;
+    }
+    try {
+      childProcess.execFileSync(ffmpeg, ['-version'], { stdio: 'ignore' });
+      return ffmpeg;
+    } catch (err) {
+      // try next candidate
+    }
   }
-  return 'ffmpeg';
+
+  return process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 }
 
 async function getPuppeteerLaunchOptions() {

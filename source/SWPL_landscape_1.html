@@ -87,7 +87,7 @@
       border-radius: 6px;
       background-color: var(--competition-icon-bg);
       background-image: var(--competition-icon-image);
-      background-size: cover;
+      background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
     }
@@ -182,7 +182,7 @@
       border: 4px solid var(--crest-border);
       background-color: var(--home-crest-bg);
       background-image: var(--home-crest-image);
-      background-size: cover;
+      background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
       display: flex;
@@ -262,7 +262,7 @@
       border: 3px solid var(--team-icon-border);
       background-color: var(--team-icon-bg);
       background-image: var(--team-icon-image);
-      background-size: cover;
+      background-size: 100% 100%;
       background-position: center;
       background-repeat: no-repeat;
       flex-shrink: 0;
@@ -280,7 +280,7 @@
     }
     .score-value-home {
       font: 45px var(--font-display);
-      color: var(--accent);
+      color: var(--home-score-color);
     }
     .score-value-away {
       font: 45px var(--font-display);
@@ -501,6 +501,7 @@
       textMuted: 'rgba(255, 255, 255, 0.55)',
       playerFirstName: '#cfc8d4',
       awayTeam: '#9a93a1',
+      homeScore: '#E6007E',
       awayScore: '#cfc8d4',
       crestText: '#6d0a4f',
       crestBorder: '#ffffff',
@@ -564,10 +565,16 @@
     if (!el) return;
     if (imageUrl) {
       el.style.backgroundImage = 'url("' + imageUrl + '")';
+      el.style.backgroundSize = '100% 100%';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
       el.style.backgroundColor = 'transparent';
       return;
     }
     el.style.backgroundImage = 'none';
+    el.style.backgroundSize = '';
+    el.style.backgroundPosition = '';
+    el.style.backgroundRepeat = '';
     el.style.backgroundColor = '';
     el.style.background = fallbackBg;
   }
@@ -589,6 +596,7 @@
       overlay.style.setProperty('--text-muted', c.textMuted);
       overlay.style.setProperty('--player-first-name-color', c.playerFirstName);
       overlay.style.setProperty('--away-team-color', c.awayTeam);
+      overlay.style.setProperty('--home-score-color', c.homeScore);
       overlay.style.setProperty('--away-score-color', c.awayScore);
       overlay.style.setProperty('--crest-text', c.crestText);
       overlay.style.setProperty('--crest-border', c.crestBorder);

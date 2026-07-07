@@ -18,7 +18,7 @@ const s3 = new AWS.S3();
 
 function resolveBundledHtml(html) {
   if (!html) {
-    throw new Error('html is required (bundled path relative to package root, e.g. source/examples/goal-lower-third-landscape.html)');
+    throw new Error('html is required (bundled path relative to package root, e.g. source/SWPL_landscape_1.html)');
   }
   const resolved = path.isAbsolute(html) ? html : path.join(ROOT, html);
   if (!fs.existsSync(resolved)) {

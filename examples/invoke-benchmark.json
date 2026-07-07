@@ -1,5 +1,5 @@
 {
-  "html": "source/SWPL_landspace_1.html",
+  "html": "source/SWPL_landscape_1.html",
   "outputS3Key": "renders/benchmark-{memory}mb.webm",
   "width": 1920,
   "height": 1080,

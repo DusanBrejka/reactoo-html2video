@@ -5,7 +5,7 @@ const path = require('path');
 const puppeteer = require('puppeteer-core');
 const { prepareHtmlForRender, ROOT } = require('../render-transparent-webm');
 
-const HTML = path.join(ROOT, 'source', 'SWPL_landspace_1.html');
+const HTML = path.join(ROOT, 'source', 'SWPL_landscape_1.html');
 const WORK = path.join(ROOT, 'output', 'check-exit');
 const TIMES = [0, 2.5, 4.9, 5.0, 5.1, 5.2, 5.25, 5.35, 5.45, 5.5, 5.8, 6.0];
 

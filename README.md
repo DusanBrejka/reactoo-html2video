@@ -42,22 +42,22 @@ npm install
 Set via `--format`, Lambda `format` / `outputFormat`, or infer from output filename extension.
 
 ```powershell
-npm run render -- --html source/SWPL_landspace_1.html --format prores --output demo.mov
-npm run render -- --html source/SWPL_landspace_1.html --format apng --output demo.apng
-npm run render -- --html source/SWPL_landspace_1.html --format mp4 --output demo.mp4
+npm run render -- --html source/SWPL_landscape_1.html --format prores --output demo.mov
+npm run render -- --html source/SWPL_landscape_1.html --format apng --output demo.apng
+npm run render -- --html source/SWPL_landscape_1.html --format mp4 --output demo.mp4
 ```
 
 ## Local render
 
 ```powershell
 $env:FFMPEG_PATH = "C:\path\to\ffmpeg.exe"   # optional if ffmpeg is on PATH
-.\render.ps1 --html source/SWPL_landspace_1.html --width 1920 --height 1080 --fps 25 --output output/demo.webm
+.\render.ps1 --html source/SWPL_landscape_1.html --width 1920 --height 1080 --fps 25 --output output/demo.webm
 ```
 
 Or:
 
 ```powershell
-npm run render -- --html source/SWPL_landspace_1.html --width 1920 --height 1080 --fps 25 --output output/demo.webm
+npm run render -- --html source/SWPL_landscape_1.html --width 1920 --height 1080 --fps 25 --output output/demo.webm
 ```
 
 Verify exit animation timing:
@@ -79,7 +79,7 @@ Function name: `reactoo-html2video-<stage>-render`. S3 bucket: `reactoo-html2vid
 Upload a template, then invoke (replace bucket name):
 
 ```powershell
-aws s3 cp source/SWPL_landspace_1.html s3://YOUR_BUCKET/templates/SWPL_landspace_1.html
+aws s3 cp source/SWPL_landscape_1.html s3://YOUR_BUCKET/templates/SWPL_landscape_1.html
 npx serverless invoke -f render --stage dev3 --region eu-central-1 --data file://examples/invoke-s3-swpl-defaults.json
 ```
 

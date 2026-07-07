@@ -1,5 +1,5 @@
 {
-  "htmlS3Key": "templates/SWPL_landspace_1.html",
+  "htmlS3Key": "templates/SWPL_landscape_1.html",
   "outputS3Key": "renders/swpl-defaults-1080p.webm",
   "width": 1920,
   "height": 1080,

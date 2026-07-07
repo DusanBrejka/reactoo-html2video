@@ -20,7 +20,7 @@ Originated as SWPL goal lower-third; renderer is **template-agnostic** — no sp
 | `render-transparent-webm.js` | CLI + shared pipeline: patch HTML, capture frames, encode |
 | `overlay-render-runtime.js` | Injected into templates: `prepareFrame`, `seekOverlay`, `getOverlayRenderDuration` |
 | `graphic-schema.json` / `invoke-schema.json` | Payload docs |
-| `source/` | Bundled templates (`SWPL_landspace_1.html`, generic example) |
+| `source/` | Bundled templates (`SWPL_landscape_1.html`) |
 | `examples/` | Sample invoke JSON |
 | `scripts/` | `fetch-ffmpeg`, `fetch-chromium-layer`, `build-ffmpeg-layer`, `check-exit-phase`, `benchmark-memory` |
 | `artifacts/` | Downloaded binaries (gitignored); populated by `npm run predeploy` |
@@ -74,7 +74,7 @@ npx serverless invoke -f render --stage dev3 --region eu-central-1 --data file:/
 
 ```powershell
 $env:FFMPEG_PATH = "C:\SOFTWARE\FFMPEG\ffmpeg.exe"
-npm run render -- --html source/SWPL_landspace_1.html --format webm --width 1920 --height 1080 --fps 25 --output demo.webm
+npm run render -- --html source/SWPL_landscape_1.html --format webm --width 1920 --height 1080 --fps 25 --output demo.webm
 npm run check-exit     # opacity curve during competition-tag exit
 ```
 
@@ -85,7 +85,7 @@ npm run check-exit     # opacity curve during competition-tag exit
 ```json
 {
   "htmlS3Bucket": "reactoo-html2video-dev3-ACCOUNTID",
-  "htmlS3Key": "templates/SWPL_landspace_1.html",
+  "htmlS3Key": "templates/SWPL_landscape_1.html",
   "outputS3Key": "renders/demo.webm",
   "format": "webm",
   "width": 1920,

@@ -105,13 +105,31 @@ resources:
         BucketName: ${self:custom.renderBucket}
         PublicAccessBlockConfiguration:
           BlockPublicAcls: true
-          BlockPublicPolicy: true
+          BlockPublicPolicy: false
           IgnorePublicAcls: true
-          RestrictPublicBuckets: true
+          RestrictPublicBuckets: false
         BucketEncryption:
           ServerSideEncryptionConfiguration:
             - ServerSideEncryptionByDefault:
                 SSEAlgorithm: AES256
+
+    ReactooHtml2videoBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref ReactooHtml2videoBucket
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Sid: PublicReadTemplates
+              Effect: Allow
+              Principal: '*'
+              Action: s3:GetObject
+              Resource:
+                Fn::Join:
+                  - ''
+                  - - 'arn:aws:s3:::'
+                    - Ref: ReactooHtml2videoBucket
+                    - '/templates/*'
 
   Outputs:
     ReactooHtml2videoBucketName:

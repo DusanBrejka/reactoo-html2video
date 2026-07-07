@@ -19,6 +19,7 @@
         "textMuted": { "type": "string" },
         "playerFirstName": { "type": "string" },
         "awayTeam": { "type": "string" },
+        "homeScore": { "type": "string" },
         "awayScore": { "type": "string" },
         "crestText": { "type": "string" },
         "crestBorder": { "type": "string" },
