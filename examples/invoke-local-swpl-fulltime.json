@@ -1,0 +1,22 @@
+{
+  "html": "source/SWPL_landscape_fulltime.html",
+  "format": "webm",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25,
+  "output": "output/swpl-fulltime.webm",
+  "graphic": {
+    "text": {
+      "competitionName": "SKY SPORTS CUP",
+      "statusLabel": "FULL-TIME",
+      "homeTeamName": "ST JOHNSTONE",
+      "awayTeamName": "MOTHERWELL",
+      "homeScore": "1",
+      "awayScore": "2",
+      "homeScorers": "Player 22', 57\nPlayer2 31'",
+      "awayScorers": "Player 22', 57\nPlayer2 31'"
+    }
+  }
+}

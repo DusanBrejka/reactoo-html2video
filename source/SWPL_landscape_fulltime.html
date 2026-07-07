@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SWPL Full-Time — Landscape</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Barlow:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-snap: cubic-bezier(0.34, 1.45, 0.64, 1);
+      --ease-shadow: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --anim-delay-competition-tag: 0.25s;
+      --anim-delay-brand-panel: 0.45s;
+      --anim-delay-match-panel: 0.85s;
+      --anim-delay-home-team: 0.95s;
+      --anim-delay-away-team: 1.05s;
+      --anim-delay-scorers: 1.35s;
+      --anim-delay-home-score: 1.6s;
+      --anim-delay-away-score: 1.75s;
+      --anim-delay-shadow: 2.2s;
+      --anim-exit-bar: 0.55s;
+      --anim-exit-tag: 0.45s;
+      --ease-exit: cubic-bezier(0.45, 0, 0.75, 0.2);
+    }
+    .overlay * {
+      animation-play-state: paused;
+    }
+    .overlay.is-ready * {
+      animation-play-state: running;
+    }
+    .overlay.is-exiting .lower-third {
+      animation: bar-out var(--anim-exit-bar) var(--ease-exit) forwards !important;
+    }
+    .overlay.is-exiting .competition-tag {
+      animation: tag-out var(--anim-exit-tag) var(--ease-exit) forwards !important;
+    }
+    .overlay.is-exiting .lower-third .brand-panel,
+    .overlay.is-exiting .lower-third .match-panel,
+    .overlay.is-exiting .lower-third .team-section,
+    .overlay.is-exiting .lower-third .team-head,
+    .overlay.is-exiting .lower-third .scorers,
+    .overlay.is-exiting .lower-third .score-value,
+    .overlay.is-exiting .lower-third .brand-logo {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+    .competition-tag {
+      position: absolute;
+      left: 50%;
+      bottom: 300px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 9px 23px;
+      border-radius: 999px;
+      background: var(--competition-tag-bg);
+      border: 1px solid var(--competition-tag-border);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      transform: translate3d(-50%, -12px, 0) scale(0.96);
+      will-change: transform, opacity, filter, box-shadow;
+      animation:
+        tag-in 0.95s var(--ease-enter) var(--anim-delay-competition-tag) forwards,
+        tag-shadow-in 1.1s var(--ease-shadow) var(--anim-delay-shadow) forwards;
+    }
+    .competition-icon {
+      width: 27px;
+      height: 27px;
+      border-radius: 6px;
+      background-color: var(--competition-icon-bg);
+      background-image: var(--competition-icon-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .competition-name {
+      font: 700 18px var(--font-body);
+      letter-spacing: 0.16em;
+      color: var(--text-primary);
+    }
+    .status-label {
+      font: 700 18px var(--font-body);
+      letter-spacing: 0.14em;
+      color: var(--accent);
+    }
+    .lower-third {
+      position: absolute;
+      left: 50%;
+      bottom: 72px;
+      border-radius: 12px;
+      transform: translate3d(-50%, 0, 0);
+      box-shadow: rgba(0, 0, 0, 0) 0 0 0;
+      will-change: transform, opacity, filter, box-shadow;
+      animation: bar-shadow-in 1.1s var(--ease-shadow) var(--anim-delay-shadow) forwards;
+    }
+    .lower-third-inner {
+      display: flex;
+      height: 195px;
+      border-radius: inherit;
+      overflow: hidden;
+    }
+    .brand-logo {
+      filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+      will-change: filter;
+      animation: crest-shadow-in 1.1s var(--ease-shadow) var(--anim-delay-shadow) forwards;
+    }
+    .lower-third .brand-panel {
+      opacity: 0;
+      transform: translate3d(0, 24px, 0) scale(0.9);
+      filter: blur(4px);
+      will-change: transform, opacity, filter;
+      animation: crest-in 0.7s var(--ease-snap) var(--anim-delay-brand-panel) forwards;
+    }
+    .lower-third .match-panel {
+      opacity: 0;
+      transform: translate3d(28px, 0, 0);
+      filter: blur(4px);
+      will-change: transform, opacity, filter;
+      animation: panel-in-right 0.85s var(--ease-enter) var(--anim-delay-match-panel) forwards;
+    }
+    .lower-third .team-home {
+      opacity: 0;
+      transform: translate3d(-24px, 0, 0);
+      filter: blur(3px);
+      will-change: transform, opacity, filter;
+      animation: panel-in-left 0.85s var(--ease-enter) var(--anim-delay-home-team) forwards;
+    }
+    .lower-third .team-away {
+      opacity: 0;
+      transform: translate3d(24px, 0, 0);
+      filter: blur(3px);
+      will-change: transform, opacity, filter;
+      animation: panel-in-right 0.85s var(--ease-enter) var(--anim-delay-away-team) forwards;
+    }
+    .score-value-delayed {
+      animation-delay: var(--anim-delay-away-score);
+    }
+    .brand-panel {
+      width: 168px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(140deg, var(--accent), var(--accent-dark));
+      border-radius: 12px 0 0 12px;
+      flex-shrink: 0;
+    }
+    .brand-logo {
+      width: 117px;
+      height: 117px;
+      background-color: transparent;
+      background-image: var(--brand-logo-image);
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .match-panel {
+      display: flex;
+      align-items: stretch;
+      background: var(--match-panel-bg);
+      min-width: 846px;
+    }
+    .team-section {
+      --team-icon-size: 52px;
+      --team-head-gap: 14px;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      align-content: start;
+      column-gap: 12px;
+      row-gap: 5px;
+      padding: 22px 24px 0 22px;
+      min-width: 0;
+    }
+    .team-divider {
+      width: 3px;
+      align-self: stretch;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .team-icon {
+      width: var(--team-icon-size);
+      height: var(--team-icon-size);
+      background-color: var(--team-icon-bg);
+      background-image: var(--team-icon-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      flex-shrink: 0;
+    }
+    .team-head {
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      gap: var(--team-head-gap);
+      min-width: 0;
+    }
+    .team-name {
+      font: 700 28px var(--font-body);
+      line-height: 1.1;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .scorers {
+      grid-column: 1;
+      grid-row: 2;
+      padding-left: calc(var(--team-icon-size) + var(--team-head-gap));
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transform: translate3d(0, 10px, 0);
+      opacity: 0;
+      will-change: transform, opacity;
+      animation: content-in 0.65s var(--ease-enter) var(--anim-delay-scorers) forwards;
+    }
+    .scorer-line {
+      font: 400 17px var(--font-body);
+      letter-spacing: 0.02em;
+      color: var(--scorer-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .score-value {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center;
+      display: inline-block;
+      font: 56px var(--font-display);
+      line-height: 1;
+      flex-shrink: 0;
+      min-width: 48px;
+      text-align: right;
+      transform: scale(0.82);
+      opacity: 0;
+      will-change: transform, opacity;
+      animation: score-pop 0.5s var(--ease-snap) var(--anim-delay-home-score) forwards;
+    }
+    .score-winner {
+      color: var(--winner-score-color);
+    }
+    .score-loser {
+      color: var(--loser-score-color);
+    }
+    .score-draw {
+      color: var(--text-primary);
+    }
+    @keyframes crest-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 24px, 0) scale(0.9);
+        filter: blur(4px);
+      }
+      70% {
+        opacity: 1;
+        transform: translate3d(0, -3px, 0) scale(1.02);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+      }
+    }
+    @keyframes bar-shadow-in {
+      to {
+        box-shadow: rgba(0, 0, 0, 0.4) 0 15px 45px;
+      }
+    }
+    @keyframes tag-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(-50%, -12px, 0) scale(0.96);
+        filter: blur(4px);
+      }
+      62% {
+        opacity: 1;
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale(1);
+        filter: blur(0);
+      }
+    }
+    @keyframes tag-shadow-in {
+      to {
+        box-shadow: rgba(0, 0, 0, 0.32) 0 10px 28px;
+      }
+    }
+    @keyframes crest-shadow-in {
+      to {
+        filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.25));
+      }
+    }
+    @keyframes panel-in-left {
+      0% {
+        opacity: 0;
+        transform: translate3d(-40px, 0, 0);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+      }
+    }
+    @keyframes panel-in-right {
+      0% {
+        opacity: 0;
+        transform: translate3d(28px, 0, 0);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+      }
+    }
+    @keyframes content-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+        filter: blur(3px);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+      }
+    }
+    @keyframes score-pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.82);
+      }
+      68% {
+        opacity: 1;
+        transform: scale(1.06);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    @keyframes bar-out {
+      0% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale(1);
+        filter: blur(0);
+        box-shadow: rgba(0, 0, 0, 0.4) 0 15px 45px;
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(-50%, 32px, 0) scale(0.95);
+        filter: blur(8px);
+        box-shadow: rgba(0, 0, 0, 0) 0 0 0;
+      }
+    }
+    @keyframes tag-out {
+      0% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale(1);
+        filter: blur(0);
+        box-shadow: rgba(0, 0, 0, 0.32) 0 10px 28px;
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(-50%, -14px, 0) scale(0.92);
+        filter: blur(5px);
+        box-shadow: rgba(0, 0, 0, 0) 0 0 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="competition-tag">
+      <div class="competition-icon" id="competition-icon"></div>
+      <span class="competition-name" id="competition-name">SKY SPORTS CUP</span>
+      <span class="status-label" id="status-label">FULL-TIME</span>
+    </div>
+
+    <div class="lower-third">
+      <div class="lower-third-inner">
+        <div class="brand-panel">
+          <div class="brand-logo" id="brand-logo"></div>
+        </div>
+        <div class="match-panel">
+          <div class="team-section team-home">
+            <div class="team-head">
+              <div class="team-icon" id="home-team-icon"></div>
+              <div class="team-name" id="home-team-name">ST JOHNSTONE</div>
+            </div>
+            <div class="scorers" id="home-scorers"></div>
+            <span class="score-value" id="home-score">1</span>
+          </div>
+          <div class="team-divider" aria-hidden="true"></div>
+          <div class="team-section team-away">
+            <div class="team-head">
+              <div class="team-icon" id="away-team-icon"></div>
+              <div class="team-name" id="away-team-name">MOTHERWELL</div>
+            </div>
+            <div class="scorers" id="away-scorers"></div>
+            <span class="score-value score-value-delayed" id="away-score">2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+  const GRAPHIC = {
+    pageTitle: 'SWPL Full-Time — Landscape',
+
+    fonts: {
+      body: '"Barlow", system-ui, sans-serif',
+      display: '"Anton", sans-serif',
+      mono: 'ui-monospace, Menlo, monospace'
+    },
+
+    colors: {
+      accent: '#E6007E',
+      accentDark: '#5e0a45',
+      textPrimary: '#ffffff',
+      textMuted: 'rgba(255, 255, 255, 0.55)',
+      scorerText: 'rgba(255, 255, 255, 0.88)',
+      winnerScore: '#E6007E',
+      loserScore: '#ffffff',
+      competitionTagBg: 'rgba(9, 7, 11, 0.8)',
+      competitionTagBorder: 'rgba(255, 255, 255, 0.14)',
+      competitionIconBg: 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.85) 0px, rgba(255, 255, 255, 0.85) 6px, rgba(255, 255, 255, 0.5) 6px, rgba(255, 255, 255, 0.5) 12px)',
+      brandLogoBg: 'transparent',
+      homeTeamIconBg: 'repeating-linear-gradient(45deg, #ffffff 0px, #ffffff 8px, #e7d9e3 8px, #e7d9e3 15px)',
+      homeTeamIconBorder: '#ffffff',
+      awayTeamIconBg: 'repeating-linear-gradient(45deg, #d8cdd5 0px, #d8cdd5 8px, #c3b6c0 8px, #c3b6c0 15px)',
+      awayTeamIconBorder: 'rgba(255, 255, 255, 0.55)',
+      matchPanelBg: 'rgba(11, 8, 14, 0.97)'
+    },
+
+    images: {
+      competitionIcon: '',
+      brandLogo: '',
+      homeTeamIcon: '',
+      awayTeamIcon: ''
+    },
+
+    text: {
+      competitionName: 'SKY SPORTS CUP',
+      statusLabel: 'FULL-TIME',
+      homeTeamName: 'ST JOHNSTONE',
+      awayTeamName: 'MOTHERWELL',
+      homeScore: '1',
+      awayScore: '2',
+      homeScorers: "Player 22', 57\nPlayer2 31'",
+      awayScorers: "Player 22', 57\nPlayer2 31'"
+    },
+
+    animation: {
+      competitionTag: 0.25,
+      brandPanel: 0.45,
+      matchPanel: 0.85,
+      homeTeam: 0.95,
+      awayTeam: 1.05,
+      scorers: 1.35,
+      homeScore: 1.6,
+      awayScore: 1.75,
+      shadow: 2.2,
+      hold: 6,
+      exitBar: 0.55,
+      exitTag: 0.45
+    }
+  };
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function setScorers(containerId, text) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '';
+    const raw = text == null ? '' : String(text);
+    const list = raw.split(/\r?\n/).filter(function (line) { return line.trim() !== ''; });
+    for (let i = 0; i < list.length; i++) {
+      const line = document.createElement('div');
+      line.className = 'scorer-line';
+      line.textContent = list[i];
+      el.appendChild(line);
+    }
+  }
+
+  function setImageOrFallback(el, imageUrl, fallbackBg) {
+    if (!el) return;
+    if (imageUrl) {
+      el.style.backgroundImage = 'url("' + imageUrl + '")';
+      el.style.backgroundSize = el.classList.contains('brand-logo') ? 'contain' : '100% 100%';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundColor = 'transparent';
+      return;
+    }
+    el.style.backgroundImage = 'none';
+    el.style.backgroundSize = '';
+    el.style.backgroundPosition = '';
+    el.style.backgroundRepeat = '';
+    el.style.backgroundColor = '';
+    if (fallbackBg) el.style.background = fallbackBg;
+  }
+
+  function applyScoreStyles(config) {
+    const t = config.text;
+    const c = config.colors;
+    const homeEl = document.getElementById('home-score');
+    const awayEl = document.getElementById('away-score');
+    if (!homeEl || !awayEl) return;
+
+    homeEl.classList.remove('score-winner', 'score-loser', 'score-draw');
+    awayEl.classList.remove('score-winner', 'score-loser', 'score-draw');
+
+    const home = parseInt(t.homeScore, 10);
+    const away = parseInt(t.awayScore, 10);
+    if (isNaN(home) || isNaN(away)) return;
+
+    if (home > away) {
+      homeEl.classList.add('score-winner');
+      awayEl.classList.add('score-loser');
+    } else if (away > home) {
+      awayEl.classList.add('score-winner');
+      homeEl.classList.add('score-loser');
+    } else {
+      homeEl.classList.add('score-draw');
+      awayEl.classList.add('score-draw');
+    }
+  }
+
+  function applyGraphic(config) {
+    document.title = config.pageTitle;
+
+    const c = config.colors;
+    const f = config.fonts;
+    const overlay = document.querySelector('.overlay');
+
+    if (overlay) {
+      overlay.style.setProperty('--font-body', f.body);
+      overlay.style.setProperty('--font-display', f.display);
+      overlay.style.setProperty('--font-mono', f.mono);
+      overlay.style.setProperty('--accent', c.accent);
+      overlay.style.setProperty('--accent-dark', c.accentDark);
+      overlay.style.setProperty('--text-primary', c.textPrimary);
+      overlay.style.setProperty('--text-muted', c.textMuted);
+      overlay.style.setProperty('--scorer-text', c.scorerText);
+      overlay.style.setProperty('--winner-score-color', c.winnerScore);
+      overlay.style.setProperty('--loser-score-color', c.loserScore);
+      overlay.style.setProperty('--competition-tag-bg', c.competitionTagBg);
+      overlay.style.setProperty('--competition-tag-border', c.competitionTagBorder);
+      overlay.style.setProperty('--match-panel-bg', c.matchPanelBg);
+    }
+
+    setImageOrFallback(
+      document.getElementById('competition-icon'),
+      config.images.competitionIcon,
+      c.competitionIconBg
+    );
+    setImageOrFallback(
+      document.getElementById('brand-logo'),
+      config.images.brandLogo,
+      c.brandLogoBg
+    );
+
+    const homeIcon = document.getElementById('home-team-icon');
+    setImageOrFallback(homeIcon, config.images.homeTeamIcon, c.homeTeamIconBg);
+
+    const awayIcon = document.getElementById('away-team-icon');
+    setImageOrFallback(awayIcon, config.images.awayTeamIcon, c.awayTeamIconBg);
+
+    const t = config.text;
+    setText('competition-name', t.competitionName);
+    setText('status-label', t.statusLabel);
+    setText('home-team-name', t.homeTeamName);
+    setText('away-team-name', t.awayTeamName);
+    setText('home-score', t.homeScore);
+    setText('away-score', t.awayScore);
+    setScorers('home-scorers', t.homeScorers);
+    setScorers('away-scorers', t.awayScorers);
+    applyScoreStyles(config);
+  }
+
+  function applyAnimationTiming(overlayEl, timing) {
+    if (!overlayEl || !timing) return;
+    overlayEl.style.setProperty('--anim-delay-competition-tag', timing.competitionTag + 's');
+    overlayEl.style.setProperty('--anim-delay-brand-panel', timing.brandPanel + 's');
+    overlayEl.style.setProperty('--anim-delay-match-panel', timing.matchPanel + 's');
+    overlayEl.style.setProperty('--anim-delay-home-team', timing.homeTeam + 's');
+    overlayEl.style.setProperty('--anim-delay-away-team', timing.awayTeam + 's');
+    overlayEl.style.setProperty('--anim-delay-scorers', timing.scorers + 's');
+    overlayEl.style.setProperty('--anim-delay-home-score', timing.homeScore + 's');
+    overlayEl.style.setProperty('--anim-delay-away-score', timing.awayScore + 's');
+    overlayEl.style.setProperty('--anim-delay-shadow', timing.shadow + 's');
+    if (timing.exitBar != null) overlayEl.style.setProperty('--anim-exit-bar', timing.exitBar + 's');
+    if (timing.exitTag != null) overlayEl.style.setProperty('--anim-exit-tag', timing.exitTag + 's');
+  }
+
+  function scheduleExit(config) {
+    const overlayEl = document.querySelector('.overlay');
+    const holdSec = (config.animation && config.animation.hold != null) ? config.animation.hold : 6;
+    setTimeout(() => {
+      if (overlayEl) overlayEl.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+
+  function preloadImages(urls) {
+    const list = urls.filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map((url) => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = url;
+    })));
+  }
+
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    const overlayEl = document.querySelector('.overlay');
+    applyAnimationTiming(overlayEl, config.animation);
+    if (overlayEl) overlayEl.classList.add('is-ready');
+    scheduleExit(config);
+  }
+
+  function resetAnimationState() {
+    const overlayEl = document.querySelector('.overlay');
+    if (overlayEl) {
+      overlayEl.classList.remove('is-ready', 'is-exiting');
+    }
+    document.querySelectorAll('.overlay [data-render-bake]').forEach(function (el) {
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('transform');
+      el.style.removeProperty('filter');
+      el.style.removeProperty('box-shadow');
+      el.style.removeProperty('-webkit-backdrop-filter');
+      el.style.removeProperty('backdrop-filter');
+      el.style.removeProperty('animation');
+      el.removeAttribute('data-render-bake');
+    });
+  }
+
+  function bakeAnimatedStyles() {
+    const nodes = document.querySelectorAll('.overlay, .overlay *');
+    const snapshot = [];
+    for (let i = 0; i < nodes.length; i++) {
+      const el = nodes[i];
+      const cs = getComputedStyle(el);
+      snapshot.push({
+        el: el,
+        opacity: cs.opacity,
+        transform: cs.transform,
+        filter: cs.filter,
+        boxShadow: cs.boxShadow,
+        backdropFilter: cs.backdropFilter || cs.webkitBackdropFilter,
+        hadAnim: cs.animationName && cs.animationName !== 'none'
+      });
+    }
+    for (let j = 0; j < snapshot.length; j++) {
+      const s = snapshot[j];
+      let baked = false;
+      s.el.style.opacity = s.opacity;
+      baked = true;
+      if (s.transform && s.transform !== 'none') {
+        s.el.style.transform = s.transform;
+        baked = true;
+      }
+      if (s.filter && s.filter !== 'none') {
+        s.el.style.filter = s.filter;
+        baked = true;
+      }
+      if (s.boxShadow && s.boxShadow !== 'none') {
+        s.el.style.boxShadow = s.boxShadow;
+        baked = true;
+      }
+      if (s.backdropFilter && s.backdropFilter !== 'none') {
+        s.el.style.backdropFilter = s.backdropFilter;
+        s.el.style.webkitBackdropFilter = s.backdropFilter;
+        baked = true;
+      }
+      if (s.hadAnim) {
+        s.el.style.animation = 'none';
+        baked = true;
+      }
+      if (baked) {
+        s.el.setAttribute('data-render-bake', '1');
+      }
+    }
+  }
+
+  function prepareFrame(timeSec, config) {
+    resetAnimationState();
+    seekGraphic(timeSec, config);
+    bakeAnimatedStyles();
+  }
+  window.prepareFrame = prepareFrame;
+
+  function seekGraphic(timeSec, config) {
+    const overlayEl = document.querySelector('.overlay');
+    if (!overlayEl) return;
+
+    applyAnimationTiming(overlayEl, config.animation);
+    const anim = config.animation || {};
+    const hold = anim.hold != null ? anim.hold : 6;
+    const exitBar = anim.exitBar != null ? anim.exitBar : 0.55;
+    const exitTag = anim.exitTag != null ? anim.exitTag : 0.45;
+
+    if (timeSec >= hold) {
+      overlayEl.classList.add('is-ready');
+      overlayEl.classList.add('is-exiting');
+    } else if (timeSec > 0) {
+      overlayEl.classList.add('is-ready');
+      overlayEl.classList.remove('is-exiting');
+    } else {
+      overlayEl.classList.remove('is-exiting');
+      overlayEl.classList.remove('is-ready');
+    }
+
+    void overlayEl.offsetHeight;
+
+    const timeMs = timeSec * 1000;
+    const holdMs = hold * 1000;
+    const anims = document.getAnimations({ subtree: true });
+
+    for (let i = 0; i < anims.length; i++) {
+      const a = anims[i];
+      const name = a.animationName || '';
+      const isExit = name === 'bar-out' || name === 'tag-out';
+
+      a.pause();
+
+      if (isExit) {
+        if (timeSec >= hold) {
+          const timing = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+          const exitDurMs = timing && timing.duration != null ?
+            timing.duration :
+            (name === 'bar-out' ? exitBar : exitTag) * 1000;
+          const elapsed = timeMs - holdMs;
+          a.currentTime = Math.min(Math.max(elapsed, 0), exitDurMs);
+        }
+        continue;
+      }
+
+      if (timeSec < hold) {
+        a.currentTime = timeMs;
+      } else {
+        const timing = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+        if (timing) {
+          a.currentTime = ((timing.delay || 0) + (timing.duration || 0)) * 1000;
+        }
+      }
+    }
+  }
+  window.seekGraphic = seekGraphic;
+
+  function initGraphic(config) {
+    applyGraphic(config);
+    const whenReady = () => preloadImages(Object.values(config.images)).then(() => startAnimation(config));
+
+    if (document.readyState === 'complete') {
+      whenReady();
+    } else {
+      window.addEventListener('load', whenReady, { once: true });
+    }
+  }
+
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+
+
+</body></html>

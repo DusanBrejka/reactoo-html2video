@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reactoo Stinger</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+    }
+    .stinger-image {
+      position: absolute;
+      inset: 0;
+      opacity: 1;
+      transform: none;
+      clip-path: none;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .stinger-panel {
+      position: absolute;
+      background: transparent;
+      display: none;
+      overflow: hidden;
+      will-change: transform;
+    }
+    .stinger-panel-img {
+      position: absolute;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <div class="stinger-image"></div>
+    <div class="stinger-panel stinger-panel-a"><div class="stinger-panel-img"></div></div>
+    <div class="stinger-panel stinger-panel-b"><div class="stinger-panel-img"></div></div>
+  </div>
+  <script src="stinger-seek.js"></script>
+  <script>
+  'use strict';
+
+  const GRAPHIC = {
+    stinger: Object.assign({}, StingerSeek.DEFAULT_CONFIG)
+  };
+
+  function applyGraphic(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    const stinger = StingerSeek.normalizeConfig(config.stinger || config);
+    const dims = StingerSeek.parseResolution(stinger.resolution);
+    const overlay = document.querySelector('.overlay');
+    const image = document.querySelector('.stinger-image');
+    const panelImgs = document.querySelectorAll('.stinger-panel-img');
+    const safeUrl = String(stinger.imageUrl || '').replace(/"/g, '\\"');
+    const fit = stinger.imageFit === 'contain' ? 'contain' : 'cover';
+    const bg = safeUrl
+      ? 'url("' + safeUrl + '")'
+      : 'linear-gradient(135deg,#1f2937,#111827)';
+    const bgStyle = 'background-image:' + bg + ';background-size:' + fit + ';';
+    if (overlay) {
+      overlay.style.width = dims.width + 'px';
+      overlay.style.height = dims.height + 'px';
+    }
+    if (image) {
+      image.style.backgroundImage = bg;
+      image.style.backgroundSize = fit;
+    }
+    panelImgs.forEach(function (el) {
+      el.style.backgroundImage = bg;
+      el.style.backgroundSize = fit;
+    });
+  }
+
+  function initGraphic(config) {
+    applyGraphic(config);
+  }
+
+  function resetAnimationState() {
+    document.querySelectorAll('[data-render-bake]').forEach(function (el) {
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('visibility');
+      el.style.removeProperty('transform');
+      el.style.removeProperty('clip-path');
+      el.style.removeProperty('-webkit-clip-path');
+      el.style.removeProperty('filter');
+      el.style.removeProperty('animation');
+      el.removeAttribute('data-render-bake');
+    });
+  }
+
+  function bakeAnimatedStyles() {
+    var root = document.querySelector('.overlay');
+    var nodes = root ? [root].concat(Array.prototype.slice.call(root.querySelectorAll('*'))) : [];
+    var snapshot = [];
+    var i;
+    for (i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var cs = getComputedStyle(el);
+      snapshot.push({
+        el: el,
+        opacity: cs.opacity,
+        visibility: cs.visibility,
+        transform: cs.transform,
+        clipPath: cs.clipPath || cs.webkitClipPath
+      });
+    }
+    for (i = 0; i < snapshot.length; i++) {
+      var s = snapshot[i];
+      var baked = false;
+      s.el.style.opacity = s.opacity;
+      baked = true;
+      if (parseFloat(s.opacity) === 0 || s.visibility === 'hidden') {
+        s.el.style.visibility = 'hidden';
+        baked = true;
+      }
+      if (s.transform && s.transform !== 'none') {
+        s.el.style.transform = s.transform;
+        baked = true;
+      }
+      if (s.clipPath && s.clipPath !== 'none') {
+        s.el.style.clipPath = s.clipPath;
+        s.el.style.webkitClipPath = s.clipPath;
+        baked = true;
+      }
+      if (baked) {
+        s.el.setAttribute('data-render-bake', '1');
+      }
+    }
+  }
+
+  function seekGraphic(timeSec, config) {
+    StingerSeek.seekGraphic(timeSec, config || window.GRAPHIC);
+  }
+
+  function prepareFrame(timeSec, config) {
+    resetAnimationState();
+    seekGraphic(timeSec, config);
+    bakeAnimatedStyles();
+  }
+
+  function getOverlayRenderDuration(config) {
+    return StingerSeek.getRenderDuration(config || window.GRAPHIC);
+  }
+
+  window.seekGraphic = seekGraphic;
+  window.prepareFrame = prepareFrame;
+  window.getOverlayRenderDuration = getOverlayRenderDuration;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

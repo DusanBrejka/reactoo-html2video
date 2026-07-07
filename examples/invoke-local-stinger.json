@@ -1,0 +1,32 @@
+{
+  "html": "source/stinger.html",
+  "graphic": {
+    "stinger": {
+      "imageUrl": "https://assetcdn.reactoo.com/reactooBackup/2d59fac5-b78a-4267-83aa-3ec0ae091108",
+      "imageFit": "cover",
+      "inType": "barndoor",
+      "inDirection": "v-open",
+      "inSpeed": 1,
+      "inEasing": "ease-in-out",
+      "inEasingSharpness": 55,
+      "inEnabled": true,
+      "outType": "barndoor",
+      "outDirection": "v-close",
+      "outSpeed": 1,
+      "outEasing": "ease-in-out",
+      "outEasingSharpness": 55,
+      "outEnabled": true,
+      "holdTime": 2,
+      "preDelay": 0,
+      "framerate": 25,
+      "resolution": "1920x1080"
+    }
+  },
+  "format": "webm",
+  "fps": 25,
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "outputFileName": "stinger-test.webm"
+}
