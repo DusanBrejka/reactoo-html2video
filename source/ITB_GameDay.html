@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITB Game Day</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      --font-body: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+      --title-color: #cf2347;
+      --name-color: #111111;
+      --versus-color: #ffffff;
+      --title-cover: #f7f9fb;
+    }
+    .stage {
+      position: absolute;
+      inset: 0;
+    }
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-color: #f7f9fb;
+      background-image: var(--bg-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .title {
+      position: absolute;
+      left: 380px;
+      top: 168px;
+      width: 1160px;
+      height: 148px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--title-cover);
+      color: var(--title-color);
+      font: 400 148px/1 var(--font-display);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .team {
+      position: absolute;
+      top: 456px;
+      width: 503px;
+      height: 519px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .team-away { left: 331px; }
+    .team-home { left: 1089px; }
+    .team-logo {
+      width: 300px;
+      height: 220px;
+      margin-top: 28px;
+      object-fit: contain;
+      object-position: center;
+    }
+    .team-name {
+      margin-top: auto;
+      padding: 0 28px 78px;
+      color: var(--name-color);
+      font: 800 64px/1.08 var(--font-body);
+      letter-spacing: 0.06em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .team-name span {
+      display: block;
+    }
+    .versus {
+      position: absolute;
+      left: 834px;
+      top: 612px;
+      width: 255px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--versus-color);
+      font: 800 78px/1 var(--font-body);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="stage">
+      <div class="bg" id="background"></div>
+      <div class="title" id="title"></div>
+      <div class="team team-away">
+        <img class="team-logo" id="away-crest" alt="">
+        <div class="team-name">
+          <span id="away-team-line-1">EDEN</span>
+          <span id="away-team-line-2">PRAIRIE</span>
+        </div>
+      </div>
+      <div class="versus" id="versus">VS</div>
+      <div class="team team-home">
+        <img class="team-logo" id="home-crest" alt="">
+        <div class="team-name">
+          <span id="home-team-line-1">GENTRY</span>
+          <span id="home-team-line-2">ACADEMY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/liveBarn/';
+  const ANIMATION_STILL = true;
+
+  const GRAPHIC = {
+    pageTitle: 'ITB Game Day',
+
+    fonts: {
+      body: '"Barlow Condensed", "Arial Narrow", sans-serif',
+      display: '"Bebas Neue", "Arial Narrow", sans-serif'
+    },
+
+    colors: {
+      title: '#cf2347',
+      titleCover: '#f7f9fb',
+      name: '#111111',
+      versus: '#ffffff'
+    },
+
+    images: {
+      background: 'ITB GameDay_16x9_Reactoo.png',
+      awayCrest: '',
+      homeCrest: ''
+    },
+
+    text: {
+      title: '',
+      versus: 'VS',
+      awayTeamName: 'EDEN PRAIRIE',
+      homeTeamName: 'GENTRY ACADEMY'
+    },
+
+    animation: {
+      hold: 6
+    }
+  };
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value == null ? '' : String(value);
+  }
+
+  function cssUrl(imageUrl) {
+    return 'url("' + String(imageUrl).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '")';
+  }
+
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    try {
+      return new URL(url, TEMPLATE_DIR).href;
+    } catch (e) {
+      return TEMPLATE_DIR + encodeURIComponent(url);
+    }
+  }
+
+  function setBgImage(el, imageUrl, asVar) {
+    if (!el) return;
+    imageUrl = resolveAssetUrl(imageUrl);
+    if (imageUrl) {
+      if (el.tagName === 'IMG') {
+        el.src = imageUrl;
+        el.style.display = '';
+      } else if (asVar) {
+        el.style.setProperty('--bg-image', cssUrl(imageUrl));
+      } else {
+        el.style.backgroundImage = cssUrl(imageUrl);
+      }
+      el.classList.add('has-image');
+      return;
+    }
+    if (el.tagName === 'IMG') {
+      el.removeAttribute('src');
+      el.style.display = 'none';
+    } else if (asVar) el.style.removeProperty('--bg-image');
+    else el.style.backgroundImage = 'none';
+    el.classList.remove('has-image');
+  }
+
+  function teamLines(name) {
+    const raw = String(name == null ? '' : name).trim();
+    if (!raw) return ['', ''];
+    if (raw.indexOf('\n') >= 0) {
+      const parts = raw.split(/\r?\n/).map(function (p) { return p.trim(); }).filter(Boolean);
+      return [parts[0] || '', parts.slice(1).join(' ')];
+    }
+    const parts = raw.split(/\s+/);
+    if (parts.length >= 2) return [parts[0], parts.slice(1).join(' ')];
+    return [raw, ''];
+  }
+
+  function applyGraphic(config) {
+    document.title = config.pageTitle;
+
+    const overlay = document.querySelector('.overlay');
+    const c = config.colors || {};
+    const f = config.fonts || {};
+    const images = config.images || {};
+    const t = config.text || {};
+
+    if (overlay) {
+      if (f.body) overlay.style.setProperty('--font-body', f.body);
+      if (f.display) overlay.style.setProperty('--font-display', f.display);
+      if (c.title) overlay.style.setProperty('--title-color', c.title);
+      if (c.titleCover) overlay.style.setProperty('--title-cover', c.titleCover);
+      if (c.name) overlay.style.setProperty('--name-color', c.name);
+      if (c.versus) overlay.style.setProperty('--versus-color', c.versus);
+    }
+
+    setBgImage(document.getElementById('background'), images.background, true);
+    setBgImage(document.getElementById('away-crest'), images.awayCrest);
+    setBgImage(document.getElementById('home-crest'), images.homeCrest);
+
+    const titleEl = document.getElementById('title');
+    if (titleEl) {
+      titleEl.textContent = t.title || '';
+      titleEl.style.display = t.title ? '' : 'none';
+    }
+    setText('versus', t.versus);
+
+    const away = teamLines(t.awayTeamName);
+    setText('away-team-line-1', away[0]);
+    setText('away-team-line-2', away[1]);
+    const home = teamLines(t.homeTeamName);
+    setText('home-team-line-1', home[0]);
+    setText('home-team-line-2', home[1]);
+  }
+
+  function applyAnimationTiming() {}
+
+  function scheduleExit() {}
+
+  function preloadImages(urls) {
+    const list = (urls || []).filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (url) {
+      return new Promise(function (resolve) {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve;
+        img.src = url;
+      });
+    }));
+  }
+
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    const overlay = document.querySelector('.overlay');
+    applyAnimationTiming(overlay, config.animation);
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+  }
+
+  function initGraphic(config) {
+    applyGraphic(config);
+    const whenReady = function () {
+      return preloadImages(Object.values(config.images || {}).map(resolveAssetUrl)).then(function () {
+        startAnimation(config);
+      });
+    };
+    if (document.readyState === 'complete') whenReady();
+    else window.addEventListener('load', whenReady, { once: true });
+  }
+
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.ANIMATION_STILL = ANIMATION_STILL;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

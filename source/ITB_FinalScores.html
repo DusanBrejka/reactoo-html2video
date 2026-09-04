@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITB Final Scores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      --font-body: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+      --title-color: #c01e35;
+      --date-color: #5c5c5c;
+      --score-color: #4a4a4a;
+      --total-color: #ffffff;
+      --notes-color: #111111;
+    }
+    .stage { position: absolute; inset: 0; }
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-color: #f7f9fb;
+      background-image: var(--bg-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .title {
+      position: absolute;
+      left: 50%;
+      top: 96px;
+      color: var(--title-color);
+      font: 400 128px/1 var(--font-display);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: translateX(-50%);
+    }
+    .date {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 286px;
+      color: var(--date-color);
+      font: 600 42px/1 var(--font-body);
+      letter-spacing: 0.14em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .team-logo {
+      position: absolute;
+      left: 368px;
+      width: 216px;
+      object-fit: contain;
+      object-position: center;
+    }
+    .logo-away { top: 479px; height: 189px; }
+    .logo-home { top: 696px; height: 188px; }
+    .scores {
+      position: absolute;
+      left: 612px;
+      top: 479px;
+      width: 696px;
+      height: 406px;
+    }
+    .row {
+      position: absolute;
+      left: 0;
+      width: 100%;
+    }
+    .row-away { top: 0; height: 189px; }
+    .row-home { top: 217px; height: 188px; }
+    .cell {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--score-color);
+      font: 800 96px/1 var(--font-body);
+    }
+    .p1 { left: 0; width: 168px; }
+    .p2 { left: 171px; width: 170px; }
+    .p3 { left: 344px; width: 172px; }
+    .total {
+      left: 517px;
+      width: 179px;
+      color: var(--total-color);
+    }
+    .notes {
+      position: absolute;
+      left: 180px;
+      right: 180px;
+      top: 958px;
+      color: var(--notes-color);
+      font: 600 34px/1.42 var(--font-body);
+      text-align: center;
+    }
+    .notes div { display: block; }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="stage">
+      <div class="bg" id="background"></div>
+      <div class="title" id="title">GIRLS HOCKEY</div>
+      <div class="date" id="date">TUESDAY, NOVEMBER 11</div>
+      <img class="team-logo logo-away" id="away-crest" alt="">
+      <img class="team-logo logo-home" id="home-crest" alt="">
+      <div class="scores">
+        <div class="row row-away">
+          <div class="cell p1" id="away-p1">0</div>
+          <div class="cell p2" id="away-p2">0</div>
+          <div class="cell p3" id="away-p3">0</div>
+          <div class="cell total" id="away-total">5</div>
+        </div>
+        <div class="row row-home">
+          <div class="cell p1" id="home-p1">0</div>
+          <div class="cell p2" id="home-p2">0</div>
+          <div class="cell p3" id="home-p3">0</div>
+          <div class="cell total" id="home-total">5</div>
+        </div>
+      </div>
+      <div class="notes">
+        <div id="note-1">Eden Prairie: Alexa Van Straaten 1g-2a-3pts</div>
+        <div id="note-2">Gentry Academy: Macy Mueller 44 saves</div>
+      </div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/liveBarn/';
+  const ANIMATION_STILL = true;
+
+  const GRAPHIC = {
+    pageTitle: 'ITB Final Scores',
+
+    fonts: {
+      body: '"Barlow Condensed", "Arial Narrow", sans-serif',
+      display: '"Bebas Neue", "Arial Narrow", sans-serif'
+    },
+
+    colors: {
+      title: '#c01e35',
+      date: '#5c5c5c',
+      score: '#4a4a4a',
+      total: '#ffffff',
+      notes: '#111111'
+    },
+
+    images: {
+      background: 'ITB Final Scores_16x9_reactoo.png',
+      awayCrest: '',
+      homeCrest: ''
+    },
+
+    text: {
+      title: 'GIRLS HOCKEY',
+      date: 'TUESDAY, NOVEMBER 11',
+      awayP1: '0',
+      awayP2: '0',
+      awayP3: '0',
+      awayTotal: '5',
+      homeP1: '0',
+      homeP2: '0',
+      homeP3: '0',
+      homeTotal: '5',
+      note1: 'Eden Prairie: Alexa Van Straaten 1g-2a-3pts',
+      note2: 'Gentry Academy: Macy Mueller 44 saves'
+    },
+
+    animation: {
+      hold: 6
+    }
+  };
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value == null ? '' : String(value);
+  }
+
+  function cssUrl(imageUrl) {
+    return 'url("' + String(imageUrl).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '")';
+  }
+
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    try {
+      return new URL(url, TEMPLATE_DIR).href;
+    } catch (e) {
+      return TEMPLATE_DIR + encodeURIComponent(url);
+    }
+  }
+
+  function setBgImage(el, imageUrl, asVar) {
+    if (!el) return;
+    imageUrl = resolveAssetUrl(imageUrl);
+    if (imageUrl) {
+      if (el.tagName === 'IMG') {
+        el.src = imageUrl;
+        el.style.display = '';
+      } else if (asVar) el.style.setProperty('--bg-image', cssUrl(imageUrl));
+      else el.style.backgroundImage = cssUrl(imageUrl);
+      el.classList.add('has-image');
+      return;
+    }
+    if (el.tagName === 'IMG') {
+      el.removeAttribute('src');
+      el.style.display = 'none';
+    } else if (asVar) el.style.removeProperty('--bg-image');
+    else el.style.backgroundImage = 'none';
+    el.classList.remove('has-image');
+  }
+
+  function applyGraphic(config) {
+    document.title = config.pageTitle;
+    const overlay = document.querySelector('.overlay');
+    const c = config.colors || {};
+    const f = config.fonts || {};
+    const images = config.images || {};
+    const t = config.text || {};
+
+    if (overlay) {
+      if (f.body) overlay.style.setProperty('--font-body', f.body);
+      if (f.display) overlay.style.setProperty('--font-display', f.display);
+      if (c.title) overlay.style.setProperty('--title-color', c.title);
+      if (c.date) overlay.style.setProperty('--date-color', c.date);
+      if (c.score) overlay.style.setProperty('--score-color', c.score);
+      if (c.total) overlay.style.setProperty('--total-color', c.total);
+      if (c.notes) overlay.style.setProperty('--notes-color', c.notes);
+    }
+
+    setBgImage(document.getElementById('background'), images.background, true);
+    setBgImage(document.getElementById('away-crest'), images.awayCrest);
+    setBgImage(document.getElementById('home-crest'), images.homeCrest);
+
+    setText('title', t.title);
+    setText('date', t.date);
+    document.getElementById('title').style.display = t.title ? '' : 'none';
+    document.getElementById('date').style.display = t.date ? '' : 'none';
+    setText('away-p1', t.awayP1);
+    setText('away-p2', t.awayP2);
+    setText('away-p3', t.awayP3);
+    setText('away-total', t.awayTotal);
+    setText('home-p1', t.homeP1);
+    setText('home-p2', t.homeP2);
+    setText('home-p3', t.homeP3);
+    setText('home-total', t.homeTotal);
+    setText('note-1', t.note1);
+    setText('note-2', t.note2);
+  }
+
+  function applyAnimationTiming() {}
+
+  function scheduleExit() {}
+
+  function preloadImages(urls) {
+    const list = (urls || []).filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (url) {
+      return new Promise(function (resolve) {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve;
+        img.src = url;
+      });
+    }));
+  }
+
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    const overlay = document.querySelector('.overlay');
+    applyAnimationTiming(overlay, config.animation);
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+  }
+
+  function initGraphic(config) {
+    applyGraphic(config);
+    const whenReady = function () {
+      return preloadImages(Object.values(config.images || {}).map(resolveAssetUrl)).then(function () {
+        startAnimation(config);
+      });
+    };
+    if (document.readyState === 'complete') whenReady();
+    else window.addEventListener('load', whenReady, { once: true });
+  }
+
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.ANIMATION_STILL = ANIMATION_STILL;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

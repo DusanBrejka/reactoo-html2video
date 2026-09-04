@@ -1,0 +1,30 @@
+{
+  "html": "source/ITB_FinalScores.html",
+  "format": "webm",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25,
+  "output": "output/itb-finalscores.webm",
+  "graphic": {
+    "text": {
+      "title": "GIRLS HOCKEY",
+      "date": "TUESDAY, NOVEMBER 11",
+      "awayP1": "0",
+      "awayP2": "0",
+      "awayP3": "0",
+      "awayTotal": "5",
+      "homeP1": "0",
+      "homeP2": "0",
+      "homeP3": "0",
+      "homeTotal": "5",
+      "note1": "Eden Prairie: Alexa Van Straaten 1g-2a-3pts",
+      "note2": "Gentry Academy: Macy Mueller 44 saves"
+    },
+    "images": {
+      "awayCrest": "",
+      "homeCrest": ""
+    }
+  }
+}

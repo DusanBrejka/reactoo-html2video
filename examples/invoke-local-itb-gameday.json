@@ -1,0 +1,22 @@
+{
+  "html": "source/ITB_GameDay.html",
+  "format": "webm",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25,
+  "output": "output/itb-gameday.webm",
+  "graphic": {
+    "text": {
+      "title": "",
+      "versus": "VS",
+      "awayTeamName": "EDEN PRAIRIE",
+      "homeTeamName": "GENTRY ACADEMY"
+    },
+    "images": {
+      "awayCrest": "",
+      "homeCrest": ""
+    }
+  }
+}

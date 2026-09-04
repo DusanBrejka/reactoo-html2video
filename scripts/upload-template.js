@@ -41,7 +41,7 @@ function parseArgs(argv) {
       console.log([
         'Usage: node scripts/upload-template.js [--stage dev3] [--region eu-central-1]',
         '',
-        '  Default: sync all *.html under source/ to s3://.../templates/ (public via bucket policy)',
+        '  Default: sync templates (html + images) under source/ to s3://.../templates/ (public via bucket policy)',
         '  --file source/foo.html --key templates/foo.html   upload one file'
       ].join('\n'));
       process.exit(0);
@@ -71,7 +71,12 @@ function uploadAll(sourceDir, bucket, region) {
     '--delete',
     '--exclude', '*',
     '--include', '*.html',
-    '--content-type', 'text/html; charset=utf-8',
+    '--include', '*.png',
+    '--include', '*.jpg',
+    '--include', '*.jpeg',
+    '--include', '*.webp',
+    '--include', '*.gif',
+    '--include', '*.svg',
     '--region', region
   ], { stdio: 'inherit' });
 

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SWPL Landscape Lineup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Barlow:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-snap: cubic-bezier(0.34, 1.45, 0.64, 1);
+      --ease-shadow: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --ease-exit: cubic-bezier(0.45, 0, 0.75, 0.2);
+      --anim-delay-competition-tag: 0.2s;
+      --anim-delay-lineup-board: 0.35s;
+      --anim-delay-home-crest: 0.55s;
+      --anim-delay-away-crest: 0.65s;
+      --anim-delay-lineup-body: 0.85s;
+      --anim-delay-shadow: 1.6s;
+      --anim-exit-board: 0.55s;
+      --anim-exit-tag: 0.45s;
+      --lineup-edge-inset: 24px;
+      --lineup-board-width: 1000px;
+      --lineup-player-font-size: 28px;
+      --lineup-row-gap: 10px;
+      --lineup-number-col-width: 58px;
+      --lineup-player-col-gap: 14px;
+      --lineup-player-line-height: 1.1;
+    }
+    .overlay * {
+      animation-play-state: paused;
+    }
+    .overlay.is-ready * {
+      animation-play-state: running;
+    }
+    .overlay.is-exiting .lineup-board {
+      animation: board-out var(--anim-exit-board) var(--ease-exit) forwards !important;
+    }
+    .overlay.is-exiting .competition-tag {
+      animation: tag-out var(--anim-exit-tag) var(--ease-exit) forwards !important;
+    }
+    .overlay.is-exiting .lineup-board .team-crest,
+    .overlay.is-exiting .lineup-board .lineup-body,
+    .overlay.is-exiting .lineup-board .lineup-column {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+    .competition-tag {
+      position: absolute;
+      left: 50%;
+      top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 9px 23px;
+      border-radius: 999px;
+      background: var(--competition-tag-bg);
+      border: 1px solid var(--competition-tag-border);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      transform: translate3d(-50%, -12px, 0) scale(0.96);
+      will-change: transform, opacity, filter, box-shadow;
+      animation:
+        tag-in 0.95s var(--ease-enter) var(--anim-delay-competition-tag) forwards,
+        tag-shadow-in 1.1s var(--ease-shadow) var(--anim-delay-shadow) forwards;
+    }
+    .competition-icon {
+      width: 27px;
+      height: 27px;
+      background-color: var(--competition-icon-bg);
+      background-image: var(--competition-icon-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .competition-name {
+      font: 700 18px var(--font-body);
+      letter-spacing: 0.16em;
+      color: var(--text-primary);
+    }
+    .competition-round {
+      font: 600 18px var(--font-body);
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+    }
+    .lineup-board {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--lineup-board-width);
+      transform: translate3d(-50%, -50%, 0);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: rgba(0, 0, 0, 0) 0 0 0;
+      will-change: transform, opacity, filter, box-shadow;
+      opacity: 0;
+      animation:
+        board-in 0.85s var(--ease-enter) var(--anim-delay-lineup-board) forwards,
+        board-shadow-in 1.1s var(--ease-shadow) var(--anim-delay-shadow) forwards;
+    }
+    .lineup-board-inner {
+      background: linear-gradient(180deg, var(--lineup-bg-top) 0%, var(--lineup-bg-bottom) 100%);
+      border: 1px solid var(--lineup-border);
+      border-radius: inherit;
+      padding: 48px 56px 52px;
+    }
+    .lineup-header {
+      /* Same column structure as .lineup-body so the header content
+         aligns flush with the inner edge of each lineup column. */
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 98px;
+      align-items: start;
+      margin-bottom: 36px;
+    }
+    .team-crest-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .team-crest-wrap-home {
+      justify-self: end;
+      align-items: flex-end;
+      text-align: right;
+      opacity: 0;
+      transform: translate3d(0, 24px, 0) scale(0.9);
+      filter: blur(4px);
+      will-change: transform, opacity, filter;
+      animation: crest-in 0.7s var(--ease-snap) var(--anim-delay-home-crest) forwards;
+    }
+    .team-crest-wrap-away {
+      justify-self: start;
+      align-items: flex-start;
+      text-align: left;
+      opacity: 0;
+      transform: translate3d(0, 24px, 0) scale(0.9);
+      filter: blur(4px);
+      will-change: transform, opacity, filter;
+      animation: crest-in 0.7s var(--ease-snap) var(--anim-delay-away-crest) forwards;
+    }
+    .team-crest {
+      width: 196px;
+      height: 196px;
+      background-color: var(--home-crest-bg);
+      background-image: var(--home-crest-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+      will-change: filter;
+      animation: crest-shadow-in 1.1s var(--ease-shadow) var(--anim-delay-shadow) forwards;
+    }
+    .team-crest-away {
+      background-color: var(--away-crest-bg);
+      background-image: var(--away-crest-image);
+    }
+    .team-name-label {
+      font: 600 38px var(--font-body);
+      letter-spacing: 0.08em;
+      color: var(--text-primary);
+      text-transform: uppercase;
+    }
+    .team-name-label-away {
+      color: var(--away-team-color);
+    }
+    .team-crest-wrap-home .team-name-label {
+      margin-right: var(--lineup-edge-inset);
+    }
+    .team-crest-wrap-away .team-name-label {
+      margin-left: var(--lineup-edge-inset);
+    }
+    .lineup-body {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      min-height: 0;
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+      filter: blur(3px);
+      will-change: transform, opacity, filter;
+      animation: content-in 0.75s var(--ease-enter) var(--anim-delay-lineup-body) forwards;
+    }
+    .lineup-divider {
+      width: 2px;
+      margin: 0 48px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.85) 12%,
+        rgba(255, 255, 255, 0.85) 88%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      align-self: stretch;
+    }
+    .lineup-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .lineup-column-home {
+      align-items: flex-end;
+      text-align: right;
+    }
+    .lineup-column-home .lineup-list {
+      padding-right: var(--lineup-edge-inset);
+    }
+    .lineup-column-away {
+      align-items: flex-start;
+      text-align: left;
+    }
+    .lineup-column-away .lineup-list {
+      padding-left: var(--lineup-edge-inset);
+    }
+    .lineup-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--lineup-row-gap);
+      width: 100%;
+      max-width: 640px;
+    }
+    .lineup-player {
+      display: grid;
+      grid-template-columns: var(--lineup-number-col-width) 1fr;
+      column-gap: var(--lineup-player-col-gap);
+      align-items: baseline;
+      font: 600 var(--lineup-player-font-size) var(--font-body);
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+      line-height: var(--lineup-player-line-height);
+      white-space: nowrap;
+    }
+    .lineup-player-number {
+      color: var(--accent);
+      font-weight: 700;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .lineup-player-name {
+      color: var(--text-primary);
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lineup-player-sub .lineup-player-name {
+      color: var(--player-first-name-color);
+    }
+    /* Home side mirrors the away side: name first (right-aligned),
+       number column hugging the centre divider. */
+    .lineup-column-home .lineup-player {
+      grid-template-columns: 1fr var(--lineup-number-col-width);
+    }
+    .lineup-column-home .lineup-player-number {
+      grid-column: 2;
+      grid-row: 1;
+      text-align: left;
+    }
+    .lineup-column-home .lineup-player-name {
+      grid-column: 1;
+      grid-row: 1;
+      text-align: right;
+    }
+    @keyframes board-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(-50%, calc(-50% + 28px), 0) scale(0.96);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(-50%, -50%, 0) scale(1);
+        filter: blur(0);
+      }
+    }
+    @keyframes board-shadow-in {
+      to {
+        box-shadow: rgba(0, 0, 0, 0.45) 0 20px 55px;
+      }
+    }
+    @keyframes board-out {
+      0% {
+        opacity: 1;
+        transform: translate3d(-50%, -50%, 0) scale(1);
+        filter: blur(0);
+        box-shadow: rgba(0, 0, 0, 0.45) 0 20px 55px;
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(-50%, calc(-50% + 32px), 0) scale(0.95);
+        filter: blur(8px);
+        box-shadow: rgba(0, 0, 0, 0) 0 0 0;
+      }
+    }
+    @keyframes crest-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 24px, 0) scale(0.9);
+        filter: blur(4px);
+      }
+      70% {
+        opacity: 1;
+        transform: translate3d(0, -3px, 0) scale(1.02);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+      }
+    }
+    @keyframes crest-shadow-in {
+      to {
+        filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.25));
+      }
+    }
+    @keyframes content-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0);
+        filter: blur(3px);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+      }
+    }
+    @keyframes tag-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(-50%, -12px, 0) scale(0.96);
+        filter: blur(4px);
+      }
+      62% {
+        opacity: 1;
+        filter: blur(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale(1);
+        filter: blur(0);
+      }
+    }
+    @keyframes tag-shadow-in {
+      to {
+        box-shadow: rgba(0, 0, 0, 0.32) 0 10px 28px;
+      }
+    }
+    @keyframes tag-out {
+      0% {
+        opacity: 1;
+        transform: translate3d(-50%, 0, 0) scale(1);
+        filter: blur(0);
+        box-shadow: rgba(0, 0, 0, 0.32) 0 10px 28px;
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(-50%, -14px, 0) scale(0.92);
+        filter: blur(5px);
+        box-shadow: rgba(0, 0, 0, 0) 0 0 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="competition-tag">
+      <div class="competition-icon" id="competition-icon"></div>
+      <span class="competition-name" id="competition-name">SKY SPORTS CUP</span>
+      <span class="competition-round" id="competition-round">QUARTER-FINAL</span>
+    </div>
+
+    <div class="lineup-board">
+      <div class="lineup-board-inner">
+        <div class="lineup-header">
+          <div class="team-crest-wrap team-crest-wrap-home">
+            <div class="team-crest" id="home-crest"></div>
+            <span class="team-name-label" id="home-team-name">Celtic</span>
+          </div>
+          <div class="team-crest-wrap team-crest-wrap-away">
+            <div class="team-crest team-crest-away" id="away-crest"></div>
+            <span class="team-name-label team-name-label-away" id="away-team-name">Glasgow City</span>
+          </div>
+        </div>
+
+        <div class="lineup-body">
+          <div class="lineup-column lineup-column-home">
+            <ul class="lineup-list" id="home-lineup"></ul>
+          </div>
+          <div class="lineup-divider" aria-hidden="true"></div>
+          <div class="lineup-column lineup-column-away">
+            <ul class="lineup-list" id="away-lineup"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+  const GRAPHIC = {
+    pageTitle: 'SWPL Landscape Lineup',
+
+    fonts: {
+      body: '"Barlow", system-ui, sans-serif',
+      display: '"Anton", sans-serif',
+      mono: 'ui-monospace, Menlo, monospace'
+    },
+
+    colors: {
+      accent: '#E6007E',
+      accentDark: '#5e0a45',
+      textPrimary: '#ffffff',
+      textMuted: 'rgba(255, 255, 255, 0.55)',
+      playerFirstName: '#cfc8d4',
+      awayTeam: '#9a93a1',
+      competitionTagBg: 'rgba(9, 7, 11, 0.8)',
+      competitionTagBorder: 'rgba(255, 255, 255, 0.14)',
+      competitionIconBg: 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.85) 0px, rgba(255, 255, 255, 0.85) 6px, rgba(255, 255, 255, 0.5) 6px, rgba(255, 255, 255, 0.5) 12px)',
+      homeCrestBg: 'repeating-linear-gradient(45deg, #ffffff 0px, #ffffff 11px, #efe3ec 11px, #efe3ec 21px)',
+      awayCrestBg: 'repeating-linear-gradient(45deg, #d8cdd5 0px, #d8cdd5 11px, #c3b6c0 11px, #c3b6c0 21px)',
+      lineupBgTop: 'rgba(20, 16, 24, 0.95)',
+      lineupBgBottom: 'rgba(11, 8, 14, 0.8)',
+      lineupBorder: 'rgba(255, 255, 255, 0.1)'
+    },
+
+    images: {
+      competitionIcon: '',
+      homeCrest: '',
+      awayCrest: ''
+    },
+
+    text: {
+      competitionName: 'SKY SPORTS CUP',
+      competitionRound: 'QUARTER-FINAL',
+      homeTeamName: 'Celtic',
+      awayTeamName: 'Glasgow City',
+      homePlayers: [
+        '1. Lee Gibson',
+        '26. Caitlin Hayes',
+        '4. Abby Morrison',
+        '5. Sophie Stewart',
+        '14. Chloe Craig',
+        '8. Olivia Chance',
+        '8. Olivia Chance',
+        '17. Hannah Davison',
+        '11. Amy Muir',
+        '9. Lauren Davidson',
+        '10. Murphy Agnew',
+        '19. Lucy Ashworth-Clement',
+        '23. Cara Henderson *',
+        '8. Olivia Chance',
+        '17. Hannah Davison',
+        '31. Brogan McWhirter *'
+      ].join('\n'),
+      awayPlayers: [
+        '23. Lee Alexander',
+        '3. Jen Beattie',
+        '25. Leanne Crichton',
+        '4. Haley King',
+        '13. Cailin Michie',
+        '6. Cassie Stuart',
+        '8. Carolanne O\'Neill',
+        '7. Emma Glasgow',
+        '17. Nicole Robertson',
+        '9. Hayley Lauder',
+        '14. Kathleen McGovern',
+        '21. Sharon Woisetschlager *'
+      ].join('\n')
+    },
+
+    layout: {
+      lineupBoardWidth: 1000,
+      lineupMaxHeight: 920,
+      lineupPlayerFontSize: 28,
+      lineupRowGap: 10,
+      lineupPlayerFontMin: 12,
+      lineupRowGapMin: 2
+    },
+
+    animation: {
+      competitionTag: 0.2,
+      lineupBoard: 0.35,
+      homeCrest: 0.55,
+      awayCrest: 0.65,
+      lineupBody: 0.85,
+      shadow: 1.6,
+      hold: 8,
+      exitBoard: 0.55,
+      exitTag: 0.45
+    }
+  };
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function setImageOrFallback(el, imageUrl, fallbackBg) {
+    if (!el) return;
+    if (imageUrl) {
+      el.style.backgroundImage = 'url("' + imageUrl + '")';
+      el.style.backgroundSize = '100% 100%';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundColor = 'transparent';
+      return;
+    }
+    el.style.backgroundImage = 'none';
+    el.style.backgroundSize = '';
+    el.style.backgroundPosition = '';
+    el.style.backgroundRepeat = '';
+    el.style.backgroundColor = '';
+    el.style.background = fallbackBg;
+  }
+
+  function parseLineupPlayers(text) {
+    if (!text) return [];
+    return String(text).split('\n').map(function (line) {
+      line = line.trim();
+      if (!line) return null;
+      var substitute = /\*\s*$/.test(line);
+      if (substitute) line = line.replace(/\*\s*$/, '').trim();
+      var match = line.match(/^(\d+)\.\s*(.+)$/);
+      if (!match) return { number: '', name: line, substitute: substitute };
+      return { number: match[1], name: match[2], substitute: substitute };
+    }).filter(Boolean);
+  }
+
+  function renderLineupList(listId, players) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    list.innerHTML = '';
+    const rows = Array.isArray(players) ? players : [];
+    for (let i = 0; i < rows.length; i++) {
+      const player = rows[i];
+      const li = document.createElement('li');
+      li.className = 'lineup-player' + (player.substitute ? ' lineup-player-sub' : '');
+      li.innerHTML =
+        '<span class="lineup-player-number">' + player.number + '.</span> ' +
+        '<span class="lineup-player-name">' + player.name + '</span>';
+      list.appendChild(li);
+    }
+  }
+
+  function fitLineupLists(config) {
+    const overlay = document.querySelector('.overlay');
+    const boardInner = document.querySelector('.lineup-board-inner');
+    const homeList = document.getElementById('home-lineup');
+    const awayList = document.getElementById('away-lineup');
+    if (!overlay || !boardInner || !homeList || !awayList) return;
+
+    const layout = config.layout || {};
+    const baseFont = layout.lineupPlayerFontSize != null ? layout.lineupPlayerFontSize : 28;
+    const baseGap = layout.lineupRowGap != null ? layout.lineupRowGap : 10;
+    const minFont = layout.lineupPlayerFontMin != null ? layout.lineupPlayerFontMin : 12;
+    const minGap = layout.lineupRowGapMin != null ? layout.lineupRowGapMin : 2;
+    const absMinFont = layout.lineupPlayerFontAbsMin != null ? layout.lineupPlayerFontAbsMin : 10;
+    const rowCount = Math.max(homeList.children.length, awayList.children.length);
+
+    function applyScale(fontSize, gap, lineHeight) {
+      const ratio = fontSize / baseFont;
+      overlay.style.setProperty('--lineup-player-font-size', fontSize + 'px');
+      overlay.style.setProperty('--lineup-row-gap', Math.max(minGap, gap) + 'px');
+      overlay.style.setProperty('--lineup-number-col-width', Math.max(34, Math.round(58 * ratio)) + 'px');
+      overlay.style.setProperty('--lineup-player-col-gap', Math.max(6, Math.round(14 * ratio)) + 'px');
+      overlay.style.setProperty('--lineup-player-line-height', String(lineHeight));
+    }
+
+    function listHeight() {
+      return Math.max(homeList.scrollHeight, awayList.scrollHeight);
+    }
+
+    function availableListHeight() {
+      const maxBoardHeight = layout.lineupMaxHeight != null ?
+        layout.lineupMaxHeight :
+        Math.max(600, (overlay.clientHeight || 1080) - 48);
+      const innerStyle = window.getComputedStyle(boardInner);
+      const header = document.querySelector('.lineup-header');
+      return maxBoardHeight -
+        parseFloat(innerStyle.paddingTop) -
+        parseFloat(innerStyle.paddingBottom) -
+        (header ? header.offsetHeight : 0) -
+        (header ? parseFloat(window.getComputedStyle(header).marginBottom) || 0 : 0);
+    }
+
+    function gapForFont(fontSize) {
+      return Math.max(minGap, baseGap * (fontSize / baseFont));
+    }
+
+    applyScale(baseFont, baseGap, 1.1);
+    if (rowCount <= 0) return;
+
+    const available = availableListHeight();
+    if (listHeight() <= available) return;
+
+    let lo = minFont;
+    let hi = baseFont;
+    let best = minFont;
+
+    for (let i = 0; i < 24; i++) {
+      const mid = (lo + hi) / 2;
+      applyScale(mid, gapForFont(mid), mid <= minFont + 0.5 ? 1 : 1.1);
+      void homeList.offsetHeight;
+      if (listHeight() <= available) {
+        best = mid;
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+      if (hi - lo < 0.2) break;
+    }
+
+    applyScale(best, gapForFont(best), best <= minFont + 0.5 ? 1 : 1.1);
+    void homeList.offsetHeight;
+
+    if (listHeight() > available) {
+      applyScale(minFont, minGap, 1);
+      void homeList.offsetHeight;
+      if (listHeight() > available) {
+        const squeeze = Math.max(absMinFont, minFont * (available / listHeight()) * 0.98);
+        applyScale(squeeze, minGap, 1);
+      }
+    }
+  }
+
+  function applyGraphic(config) {
+    document.title = config.pageTitle;
+
+    const overlay = document.querySelector('.overlay');
+    const c = config.colors;
+    const f = config.fonts;
+
+    if (overlay) {
+      overlay.style.setProperty('--font-body', f.body);
+      overlay.style.setProperty('--font-display', f.display);
+      overlay.style.setProperty('--font-mono', f.mono);
+      overlay.style.setProperty('--accent', c.accent);
+      overlay.style.setProperty('--accent-dark', c.accentDark);
+      overlay.style.setProperty('--text-primary', c.textPrimary);
+      overlay.style.setProperty('--text-muted', c.textMuted);
+      overlay.style.setProperty('--player-first-name-color', c.playerFirstName);
+      overlay.style.setProperty('--away-team-color', c.awayTeam);
+      overlay.style.setProperty('--competition-tag-bg', c.competitionTagBg);
+      overlay.style.setProperty('--competition-tag-border', c.competitionTagBorder);
+      overlay.style.setProperty('--lineup-bg-top', c.lineupBgTop);
+      overlay.style.setProperty('--lineup-bg-bottom', c.lineupBgBottom);
+      overlay.style.setProperty('--lineup-border', c.lineupBorder);
+    }
+
+    const layout = config.layout || {};
+    if (overlay && layout.lineupBoardWidth != null) {
+      overlay.style.setProperty('--lineup-board-width', layout.lineupBoardWidth + 'px');
+    }
+
+    setImageOrFallback(
+      document.getElementById('competition-icon'),
+      config.images.competitionIcon,
+      c.competitionIconBg
+    );
+    setImageOrFallback(
+      document.getElementById('home-crest'),
+      config.images.homeCrest,
+      c.homeCrestBg
+    );
+    setImageOrFallback(
+      document.getElementById('away-crest'),
+      config.images.awayCrest,
+      c.awayCrestBg
+    );
+
+    const t = config.text;
+    setText('competition-name', t.competitionName);
+    setText('competition-round', t.competitionRound);
+    setText('home-team-name', t.homeTeamName);
+    setText('away-team-name', t.awayTeamName);
+
+    renderLineupList('home-lineup', parseLineupPlayers(t.homePlayers));
+    renderLineupList('away-lineup', parseLineupPlayers(t.awayPlayers));
+    fitLineupLists(config);
+  }
+
+  function applyAnimationTiming(overlay, timing) {
+    if (!overlay || !timing) return;
+    overlay.style.setProperty('--anim-delay-competition-tag', timing.competitionTag + 's');
+    overlay.style.setProperty('--anim-delay-lineup-board', timing.lineupBoard + 's');
+    overlay.style.setProperty('--anim-delay-home-crest', timing.homeCrest + 's');
+    overlay.style.setProperty('--anim-delay-away-crest', timing.awayCrest + 's');
+    overlay.style.setProperty('--anim-delay-lineup-body', timing.lineupBody + 's');
+    overlay.style.setProperty('--anim-delay-shadow', timing.shadow + 's');
+    if (timing.exitBoard != null) overlay.style.setProperty('--anim-exit-board', timing.exitBoard + 's');
+    if (timing.exitTag != null) overlay.style.setProperty('--anim-exit-tag', timing.exitTag + 's');
+  }
+
+  function scheduleExit(config) {
+    const overlay = document.querySelector('.overlay');
+    const holdSec = (config.animation && config.animation.hold != null) ? config.animation.hold : 8;
+    setTimeout(() => {
+      if (overlay) overlay.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+
+  function preloadImages(urls) {
+    const list = urls.filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map((url) => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = url;
+    })));
+  }
+
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    const overlay = document.querySelector('.overlay');
+    applyAnimationTiming(overlay, config.animation);
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+  }
+
+  function resetAnimationState() {
+    const overlay = document.querySelector('.overlay');
+    if (overlay) {
+      overlay.classList.remove('is-ready', 'is-exiting');
+    }
+    document.querySelectorAll('.overlay [data-render-bake]').forEach(function (el) {
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('transform');
+      el.style.removeProperty('filter');
+      el.style.removeProperty('box-shadow');
+      el.style.removeProperty('-webkit-backdrop-filter');
+      el.style.removeProperty('backdrop-filter');
+      el.style.removeProperty('animation');
+      el.removeAttribute('data-render-bake');
+    });
+  }
+
+  function bakeAnimatedStyles() {
+    const nodes = document.querySelectorAll('.overlay, .overlay *');
+    const snapshot = [];
+    for (let i = 0; i < nodes.length; i++) {
+      const el = nodes[i];
+      const cs = getComputedStyle(el);
+      snapshot.push({
+        el: el,
+        opacity: cs.opacity,
+        transform: cs.transform,
+        filter: cs.filter,
+        boxShadow: cs.boxShadow,
+        backdropFilter: cs.backdropFilter || cs.webkitBackdropFilter,
+        hadAnim: cs.animationName && cs.animationName !== 'none'
+      });
+    }
+    for (let j = 0; j < snapshot.length; j++) {
+      const s = snapshot[j];
+      let baked = false;
+      s.el.style.opacity = s.opacity;
+      baked = true;
+      if (s.transform && s.transform !== 'none') {
+        s.el.style.transform = s.transform;
+        baked = true;
+      }
+      if (s.filter && s.filter !== 'none') {
+        s.el.style.filter = s.filter;
+        baked = true;
+      }
+      if (s.boxShadow && s.boxShadow !== 'none') {
+        s.el.style.boxShadow = s.boxShadow;
+        baked = true;
+      }
+      if (s.backdropFilter && s.backdropFilter !== 'none') {
+        s.el.style.backdropFilter = s.backdropFilter;
+        s.el.style.webkitBackdropFilter = s.backdropFilter;
+        baked = true;
+      }
+      if (s.hadAnim) {
+        s.el.style.animation = 'none';
+        baked = true;
+      }
+      if (baked) {
+        s.el.setAttribute('data-render-bake', '1');
+      }
+    }
+  }
+
+  function prepareFrame(timeSec, config) {
+    resetAnimationState();
+    seekGraphic(timeSec, config);
+    bakeAnimatedStyles();
+  }
+  window.prepareFrame = prepareFrame;
+
+  function seekGraphic(timeSec, config) {
+    const overlay = document.querySelector('.overlay');
+    if (!overlay) return;
+
+    applyAnimationTiming(overlay, config.animation);
+    const anim = config.animation || {};
+    const hold = anim.hold != null ? anim.hold : 8;
+    const exitBoard = anim.exitBoard != null ? anim.exitBoard : 0.55;
+    const exitTag = anim.exitTag != null ? anim.exitTag : 0.45;
+
+    if (timeSec >= hold) {
+      overlay.classList.add('is-ready');
+      overlay.classList.add('is-exiting');
+    } else if (timeSec > 0) {
+      overlay.classList.add('is-ready');
+      overlay.classList.remove('is-exiting');
+    } else {
+      overlay.classList.remove('is-exiting');
+      overlay.classList.remove('is-ready');
+    }
+
+    void overlay.offsetHeight;
+
+    const timeMs = timeSec * 1000;
+    const holdMs = hold * 1000;
+    const anims = document.getAnimations({ subtree: true });
+
+    for (let i = 0; i < anims.length; i++) {
+      const a = anims[i];
+      const name = a.animationName || '';
+      const isExit = name === 'board-out' || name === 'tag-out';
+
+      a.pause();
+
+      if (isExit) {
+        if (timeSec >= hold) {
+          const timing = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+          const exitDurMs = timing && timing.duration != null ?
+            timing.duration :
+            (name === 'board-out' ? exitBoard : exitTag) * 1000;
+          const elapsed = timeMs - holdMs;
+          a.currentTime = Math.min(Math.max(elapsed, 0), exitDurMs);
+        }
+        continue;
+      }
+
+      if (timeSec < hold) {
+        a.currentTime = timeMs;
+      } else {
+        const timing = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+        if (timing) {
+          a.currentTime = ((timing.delay || 0) + (timing.duration || 0)) * 1000;
+        }
+      }
+    }
+  }
+  window.seekGraphic = seekGraphic;
+
+  function initGraphic(config) {
+    applyGraphic(config);
+    const whenReady = () => preloadImages(Object.values(config.images)).then(() => startAnimation(config));
+
+    if (document.readyState === 'complete') {
+      whenReady();
+    } else {
+      window.addEventListener('load', whenReady, { once: true });
+    }
+  }
+
+  window.GRAPHIC = GRAPHIC;
+  window.applyGraphic = applyGraphic;
+  initGraphic(GRAPHIC);
+  </script>
+
+
+</body></html>

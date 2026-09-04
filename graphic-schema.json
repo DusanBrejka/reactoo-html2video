@@ -32,15 +32,24 @@
         "homeTeamIconBorder": { "type": "string" },
         "awayTeamIconBg": { "type": "string" },
         "awayTeamIconBorder": { "type": "string" },
-        "playerPanelBg": { "type": "string" },
-        "scorePanelBg": { "type": "string" }
+        "title": { "type": "string" },
+        "titleCover": { "type": "string" },
+        "name": { "type": "string" },
+        "versus": { "type": "string" },
+        "date": { "type": "string" },
+        "score": { "type": "string" },
+        "total": { "type": "string" },
+        "notes": { "type": "string" }
       }
     },
     "images": {
       "type": "object",
       "properties": {
         "competitionIcon": { "type": "string", "description": "URL or data URI" },
+        "background": { "type": "string", "description": "Full-frame plate URL, relative path, or data URI" },
+        "channelLogo": { "type": "string" },
         "homeCrest": { "type": "string" },
+        "awayCrest": { "type": "string" },
         "homeTeamIcon": { "type": "string" },
         "awayTeamIcon": { "type": "string" }
       }
@@ -59,7 +68,20 @@
         "homeTeamName": { "type": "string" },
         "homeScore": { "type": "string" },
         "awayTeamName": { "type": "string" },
-        "awayScore": { "type": "string" }
+        "awayScore": { "type": "string" },
+        "title": { "type": "string" },
+        "versus": { "type": "string" },
+        "date": { "type": "string" },
+        "awayP1": { "type": "string" },
+        "awayP2": { "type": "string" },
+        "awayP3": { "type": "string" },
+        "awayTotal": { "type": "string" },
+        "homeP1": { "type": "string" },
+        "homeP2": { "type": "string" },
+        "homeP3": { "type": "string" },
+        "homeTotal": { "type": "string" },
+        "note1": { "type": "string" },
+        "note2": { "type": "string" }
       }
     },
     "animation": {
@@ -76,7 +98,13 @@
         "shadow": { "type": "number" },
         "hold": { "type": "number" },
         "exitBar": { "type": "number" },
-        "exitTag": { "type": "number" }
+        "exitTag": { "type": "number" },
+        "title": { "type": "number" },
+        "channelLogo": { "type": "number" },
+        "away": { "type": "number" },
+        "versus": { "type": "number" },
+        "home": { "type": "number" },
+        "exitStage": { "type": "number" }
       }
     }
   }

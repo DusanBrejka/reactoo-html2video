@@ -352,11 +352,32 @@ function patchHtmlForRender(html) {
   return html;
 }
 
+function copyTemplateSidecarAssets(sourcePath, workDir) {
+  const sourceDir = path.dirname(sourcePath);
+  if (!fs.existsSync(sourceDir) || path.resolve(sourceDir) === path.resolve(workDir)) return;
+  const html = fs.readFileSync(sourcePath, 'utf8');
+  const re = /["']([^"']+\.(?:png|jpe?g|webp|gif|svg))["']/gi;
+  const seen = {};
+  let m;
+  while ((m = re.exec(html))) {
+    const rel = m[1].replace(/\\/g, '/');
+    if (/^(?:https?:|data:|\/\/)/i.test(rel)) continue;
+    const name = path.basename(rel);
+    if (seen[name]) continue;
+    seen[name] = true;
+    const src = path.join(sourceDir, name);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, path.join(workDir, name));
+    }
+  }
+}
+
 function prepareHtmlForRender(sourcePath, workDir) {
   let html = fs.readFileSync(sourcePath, 'utf8');
   html = inlineLocalScriptRefs(html, sourcePath);
   html = patchHtmlForRender(html);
   fs.mkdirSync(workDir, { recursive: true });
+  copyTemplateSidecarAssets(sourcePath, workDir);
   const dest = path.join(workDir, 'template.render.html');
   fs.writeFileSync(dest, html, 'utf8');
   return dest;
@@ -491,15 +512,12 @@ function ensureFfmpeg() {
   }
 }
 
-function encodeFrames(format, fps, framesDir, outputPath, totalFrames) {
+function encodeFrames(format, fps, framesDir, outputPath, totalFrames, still) {
   const ffmpeg = findFfmpegExecutable();
-  const inputPattern = path.join(framesDir, 'frame_%05d.png');
-  const baseArgs = [
-    '-y',
-    '-framerate', String(fps),
-    '-i', inputPattern,
-    '-frames:v', String(totalFrames)
-  ];
+  const input = path.join(framesDir, still ? 'frame_00000.png' : 'frame_%05d.png');
+  const baseArgs = ['-y'];
+  if (still) baseArgs.push('-loop', '1');
+  baseArgs.push('-framerate', String(fps), '-i', input, '-frames:v', String(totalFrames));
   let args;
 
   switch (normalizeFormat(format)) {
@@ -530,17 +548,19 @@ function encodeFrames(format, fps, framesDir, outputPath, totalFrames) {
       ]);
       break;
     case 'webm':
-    default:
-      args = baseArgs.concat([
+    default: {
+      const vp9 = [
         '-c:v', 'libvpx-vp9',
         '-pix_fmt', 'yuva420p',
         '-b:v', '4M',
-        '-auto-alt-ref', '0',
-        '-g', '1',
-        '-keyint_min', '1',
-        outputPath
-      ]);
+        '-auto-alt-ref', '0'
+      ];
+      if (!still) {
+        vp9.push('-g', '1', '-keyint_min', '1');
+      }
+      args = baseArgs.concat(vp9, [outputPath]);
       break;
+    }
   }
 
   console.log('Encoding ' + normalizeFormat(format) + ': ' + ffmpeg + ' ' + args.join(' '));
@@ -643,36 +663,49 @@ async function captureFrames(opts, sourceHtmlPath, framesDir, dims) {
     await page.waitForFunction(() => window.__RENDER_ARMED__ === true, { timeout: 60000 });
     await applyOutputDimensions(page, dims);
 
-    const durationSec = await page.evaluate(() => {
+    const meta = await page.evaluate(() => {
+      var g = window.GRAPHIC || {};
+      var anim = g.animation || {};
+      var duration = 10;
       if (typeof window.getOverlayRenderDuration === 'function') {
-        return window.getOverlayRenderDuration(window.GRAPHIC);
+        duration = window.getOverlayRenderDuration(g);
+      } else if (typeof window.getGraphicRenderDuration === 'function') {
+        duration = window.getGraphicRenderDuration(anim);
       }
-      if (typeof window.getGraphicRenderDuration === 'function') {
-        return window.getGraphicRenderDuration(window.GRAPHIC && window.GRAPHIC.animation);
-      }
-      return 10;
+      return {
+        duration: duration,
+        still: !!window.ANIMATION_STILL,
+        hold: anim.hold != null ? Number(anim.hold) : 0
+      };
     });
 
+    const durationSec = Number(meta.duration) || 10;
+    const still = !!meta.still;
     const totalFrames = Math.max(1, Math.ceil(durationSec * opts.fps));
+    const captureCount = still ? 1 : totalFrames;
+    const stillTime = meta.hold > 0 ? Math.min(meta.hold, durationSec) * 0.5 : 0;
     console.log(
-      'Capturing ' + totalFrames + ' frames at ' + opts.fps + ' fps (~' + durationSec.toFixed(2) + 's), ' +
+      (still
+        ? 'Capturing 1 still frame, looping to ' + totalFrames + ' frames'
+        : 'Capturing ' + totalFrames + ' frames') +
+      ' at ' + opts.fps + ' fps (~' + durationSec.toFixed(2) + 's), ' +
       dims.width + 'x' + dims.height + ' (template ' + dims.templateWidth + 'x' + dims.templateHeight + ')'
     );
 
     rimraf(framesDir);
     fs.mkdirSync(framesDir, { recursive: true });
 
-    for (let frame = 0; frame < totalFrames; frame++) {
-      const timeSec = frame / opts.fps;
+    for (let frame = 0; frame < captureCount; frame++) {
+      const timeSec = still ? stillTime : frame / opts.fps;
       const framePath = path.join(framesDir, 'frame_' + String(frame).padStart(5, '0') + '.png');
       await seekAndCapture(page, timeSec, framePath, dims);
 
-      if ((frame + 1) % opts.fps === 0 || frame === totalFrames - 1) {
-        console.log('  frame ' + (frame + 1) + '/' + totalFrames);
+      if ((frame + 1) % opts.fps === 0 || frame === captureCount - 1) {
+        console.log('  frame ' + (frame + 1) + '/' + captureCount);
       }
     }
 
-    return totalFrames;
+    return { totalFrames: totalFrames, still: still };
   } finally {
     await browser.close();
   }
@@ -693,8 +726,8 @@ async function renderOverlay(opts) {
   ensureFfmpeg();
   fs.mkdirSync(outputDir, { recursive: true });
 
-  const totalFrames = await captureFrames({ fps: fps, graphic: opts.graphic }, htmlPath, framesDir, dims);
-  encodeFrames(format, fps, framesDir, outputPath, totalFrames);
+  const capture = await captureFrames({ fps: fps, graphic: opts.graphic }, htmlPath, framesDir, dims);
+  encodeFrames(format, fps, framesDir, outputPath, capture.totalFrames, capture.still);
 
   if (!opts.keepFrames) {
     rimraf(framesDir);

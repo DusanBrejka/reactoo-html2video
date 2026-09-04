@@ -66,6 +66,32 @@ async function uploadRenderToS3(bucket, key, filePath, contentType) {
   }).promise();
 }
 
+function localAssetNames(html) {
+  const names = [];
+  const re = /["']([^"']+\.(?:png|jpe?g|webp|gif|svg))["']/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const rel = m[1].replace(/\\/g, '/');
+    if (/^(?:https?:|data:|\/\/)/i.test(rel)) continue;
+    const base = rel.split('/').pop();
+    if (base && names.indexOf(base) < 0) names.push(base);
+  }
+  return names;
+}
+
+async function downloadTemplateAssets(bucket, htmlKey, html, workDir) {
+  const prefix = htmlKey.includes('/') ? htmlKey.slice(0, htmlKey.lastIndexOf('/') + 1) : '';
+  const names = localAssetNames(html);
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    try {
+      await downloadFromS3(bucket, prefix + name, workDir, name);
+    } catch (err) {
+      console.warn('Optional template asset not found:', prefix + name);
+    }
+  }
+}
+
 function normalizeGraphic(graphic) {
   if (graphic == null) {
     return undefined;
@@ -94,6 +120,12 @@ exports.render = async (event) => {
       throw new Error('htmlS3Key requires htmlS3Bucket or inputS3Bucket');
     }
     htmlPath = await downloadFromS3(buckets.htmlBucket, event.htmlS3Key, workDir, 'template.html');
+    await downloadTemplateAssets(
+      buckets.htmlBucket,
+      event.htmlS3Key,
+      fs.readFileSync(htmlPath, 'utf8'),
+      workDir
+    );
   } else if (event.html) {
     htmlPath = resolveBundledHtml(event.html);
   } else {
