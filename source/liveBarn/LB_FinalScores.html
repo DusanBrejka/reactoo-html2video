@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LiveBarn Final Scores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      --font-body: "Poppins", "Arial", sans-serif;
+      --font-display: "Poppins", "Arial", sans-serif;
+      --title-color: #ffffff;
+      --date-color: #ffffff;
+      --label-color: #307bbf;
+      --cell-color: #bbbcbe;
+      --final-color: #307bbf;
+      --digit-color: #ffffff;
+      --notes-color: #ffffff;
+    }
+    .stage { position: absolute; inset: 0; }
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-color: #122a46;
+      background-image: var(--bg-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 148px;
+      color: var(--title-color);
+      font: 700 118px/1 var(--font-display);
+      letter-spacing: 0.02em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .date {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 318px;
+      color: var(--date-color);
+      font: 500 32px/1 var(--font-body);
+      letter-spacing: 0.14em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .crest {
+      position: absolute;
+      left: 470px;
+      width: 150px;
+      object-fit: contain;
+      object-position: center;
+    }
+    .crest-away { top: 500px; height: 150px; }
+    .crest-home { top: 680px; height: 150px; }
+    .board {
+      position: absolute;
+      left: 660px;
+      top: 468px;
+      width: 760px;
+    }
+    .labels, .row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) 168px;
+      column-gap: 8px;
+    }
+    .overlay.is-ot .labels,
+    .overlay.is-ot .row {
+      grid-template-columns: repeat(4, 1fr) 150px;
+    }
+    .labels .ot,
+    .cell.ot { display: none; }
+    .overlay.is-ot .labels .ot,
+    .overlay.is-ot .cell.ot { display: flex; }
+    .labels span {
+      color: var(--label-color);
+      font: 600 28px/1 var(--font-body);
+      letter-spacing: 0.06em;
+      text-align: center;
+      padding-bottom: 12px;
+    }
+    .row { margin-bottom: 14px; }
+    .cell {
+      height: 118px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--cell-color);
+      color: var(--digit-color);
+      font: 700 72px/1 var(--font-body);
+      border-radius: 8px;
+    }
+    .cell.final { background: var(--final-color); }
+    .final-word {
+      position: absolute;
+      left: 1448px;
+      top: 500px;
+      height: 300px;
+      color: var(--label-color);
+      font: 700 42px/1 var(--font-body);
+      letter-spacing: 0.28em;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+    .notes {
+      position: absolute;
+      left: 180px;
+      right: 180px;
+      top: 948px;
+      color: var(--notes-color);
+      font: 500 30px/1.45 var(--font-body);
+      text-align: center;
+    }
+    .notes strong { font-weight: 700; }
+    .notes div { display: block; }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="stage">
+      <div class="bg" id="background"></div>
+      <div class="title" id="title">FINAL SCORES</div>
+      <div class="date" id="date">WEDNESDAY, OCTOBER 21</div>
+      <img class="crest crest-away" id="away-crest" alt="">
+      <img class="crest crest-home" id="home-crest" alt="">
+      <div class="board" id="board">
+        <div class="labels">
+          <span>1ST</span>
+          <span>2ND</span>
+          <span>3RD</span>
+          <span class="ot">OT</span>
+        </div>
+        <div class="row">
+          <div class="cell" id="away-p1">0</div>
+          <div class="cell" id="away-p2">0</div>
+          <div class="cell" id="away-p3">0</div>
+          <div class="cell ot" id="away-ot">0</div>
+          <div class="cell final" id="away-total">0</div>
+        </div>
+        <div class="row">
+          <div class="cell" id="home-p1">0</div>
+          <div class="cell" id="home-p2">0</div>
+          <div class="cell" id="home-p3">0</div>
+          <div class="cell ot" id="home-ot">0</div>
+          <div class="cell final" id="home-total">0</div>
+        </div>
+      </div>
+      <div class="final-word">FINAL</div>
+      <div class="notes">
+        <div><strong id="note-1-label"></strong> <span id="note-1-body"></span></div>
+        <div><strong id="note-2-label"></strong> <span id="note-2-body"></span></div>
+      </div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/liveBarn/';
+  const ANIMATION_STILL = true;
+
+  const GRAPHIC = {
+    pageTitle: 'LiveBarn Final Scores',
+    showOt: false,
+    fonts: {
+      body: '"Poppins", "Arial", sans-serif',
+      display: '"Poppins", "Arial", sans-serif'
+    },
+    colors: {
+      title: '#ffffff',
+      date: '#ffffff',
+      label: '#307bbf',
+      cell: '#bbbcbe',
+      final: '#307bbf',
+      digit: '#ffffff',
+      notes: '#ffffff'
+    },
+    images: {
+      background: 'finalscores-bg.png',
+      awayCrest: 'knights.png',
+      homeCrest: 'predators.png'
+    },
+    text: {
+      title: 'FINAL SCORES',
+      date: 'WEDNESDAY, OCTOBER 21',
+      awayP1: '0',
+      awayP2: '0',
+      awayP3: '0',
+      awayOt: '0',
+      awayTotal: '0',
+      homeP1: '0',
+      homeP2: '0',
+      homeP3: '0',
+      homeOt: '0',
+      homeTotal: '0',
+      note1Label: 'Scranton Knights:',
+      note1Body: 'Alex Van Straaten 1g-2a-3pts',
+      note2Label: 'Pittsburgh Predators:',
+      note2Body: 'Max Mueller 44 saves'
+    },
+    animation: { hold: 6 }
+  };
+
+  function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value == null ? '' : String(value);
+  }
+
+  function cssUrl(imageUrl) {
+    return 'url("' + String(imageUrl).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '")';
+  }
+
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    var base = (location.protocol === 'file:') ? location.href : TEMPLATE_DIR;
+    try { return new URL(url, base).href; }
+    catch (e) { return base + encodeURIComponent(url); }
+  }
+
+  function setBgImage(el, imageUrl, asVar) {
+    if (!el) return;
+    imageUrl = resolveAssetUrl(imageUrl);
+    if (imageUrl) {
+      if (el.tagName === 'IMG') {
+        el.src = imageUrl;
+        el.style.display = '';
+      } else if (asVar) el.style.setProperty('--bg-image', cssUrl(imageUrl));
+      else el.style.backgroundImage = cssUrl(imageUrl);
+      el.classList.add('has-image');
+      return;
+    }
+    if (el.tagName === 'IMG') {
+      el.removeAttribute('src');
+      el.style.display = 'none';
+    } else if (asVar) el.style.removeProperty('--bg-image');
+    else el.style.backgroundImage = 'none';
+    el.classList.remove('has-image');
+  }
+
+  function applyGraphic(config) {
+    if (config && config.animation) Object.assign((window.GRAPHIC || GRAPHIC).animation, config.animation);
+    document.title = config.pageTitle;
+    var overlay = document.querySelector('.overlay');
+    var c = config.colors || {};
+    var f = config.fonts || {};
+    var images = config.images || {};
+    var t = config.text || {};
+    if (overlay) {
+      overlay.classList.toggle('is-ot', !!config.showOt);
+      if (f.body) overlay.style.setProperty('--font-body', f.body);
+      if (f.display) overlay.style.setProperty('--font-display', f.display);
+      if (c.title) overlay.style.setProperty('--title-color', c.title);
+      if (c.date) overlay.style.setProperty('--date-color', c.date);
+      if (c.label) overlay.style.setProperty('--label-color', c.label);
+      if (c.cell) overlay.style.setProperty('--cell-color', c.cell);
+      if (c.final) overlay.style.setProperty('--final-color', c.final);
+      if (c.digit) overlay.style.setProperty('--digit-color', c.digit);
+      if (c.notes) overlay.style.setProperty('--notes-color', c.notes);
+    }
+    setBgImage(document.getElementById('background'), images.background, true);
+    setBgImage(document.getElementById('away-crest'), images.awayCrest);
+    setBgImage(document.getElementById('home-crest'), images.homeCrest);
+    setText('title', t.title);
+    setText('date', t.date);
+    document.getElementById('title').style.display = t.title ? '' : 'none';
+    document.getElementById('date').style.display = t.date ? '' : 'none';
+    setText('away-p1', t.awayP1);
+    setText('away-p2', t.awayP2);
+    setText('away-p3', t.awayP3);
+    setText('away-ot', t.awayOt);
+    setText('away-total', t.awayTotal);
+    setText('home-p1', t.homeP1);
+    setText('home-p2', t.homeP2);
+    setText('home-p3', t.homeP3);
+    setText('home-ot', t.homeOt);
+    setText('home-total', t.homeTotal);
+    setText('note-1-label', t.note1Label);
+    setText('note-1-body', t.note1Body);
+    setText('note-2-label', t.note2Label);
+    setText('note-2-body', t.note2Body);
+  }
+
+  function applyAnimationTiming() {}
+  function scheduleExit() {}
+
+  function getTemplateTotalDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var a = config.animation || {};
+    return a.hold != null ? Number(a.hold) : 6;
+  }
+
+  function preloadImages(urls) {
+    var list = (urls || []).filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (url) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve;
+        img.src = url;
+      });
+    }));
+  }
+
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    var overlay = document.querySelector('.overlay');
+    applyAnimationTiming(overlay, config.animation);
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+  }
+
+  function initGraphic(config) {
+    applyGraphic(config);
+    var whenReady = function () {
+      return preloadImages(Object.values(config.images || {}).map(resolveAssetUrl)).then(function () {
+        startAnimation(config);
+      });
+    };
+    if (document.readyState === 'complete') whenReady();
+    else window.addEventListener('load', whenReady, { once: true });
+  }
+
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.getTemplateTotalDuration = getTemplateTotalDuration;
+  window.ANIMATION_STILL = ANIMATION_STILL;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "htmlS3Key": "templates/liveBarn/LB_FinalScores.html",
+  "outputS3Key": "renders/livebarn-finalscores.webm",
+  "format": "webm",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25
+}

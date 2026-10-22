@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LiveBarn Game Day</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&amp;family=Roboto+Condensed:wght@700&amp;family=Roboto:wght@900&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      --font-body: "Roboto Condensed", "Arial Narrow", sans-serif;
+      --font-display: "Roboto", "Arial Black", sans-serif;
+      --font-date: "Poppins", "Arial", sans-serif;
+      --title-color: #ffffff;
+      --date-color: #ffffff;
+      --name-color: #060709;
+    }
+    .stage { position: absolute; inset: 0; }
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-color: #122a46;
+      background-image: var(--bg-image);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 188px;
+      color: var(--title-color);
+      font: 900 156px/0.9 var(--font-display);
+      letter-spacing: 0.01em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .date {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 392px;
+      color: var(--date-color);
+      font: 500 34px/1 var(--font-date);
+      letter-spacing: 0.16em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .crest {
+      position: absolute;
+      object-fit: contain;
+      object-position: center;
+    }
+    .crest-away { left: 298px; top: 552px; width: 139px; height: 172px; }
+    .crest-home { left: 1480px; top: 549px; width: 167px; height: 165px; }
+    .team-name {
+      position: absolute;
+      top: 575px;
+      height: 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--name-color);
+      font: 700 40px/1.05 var(--font-body);
+      letter-spacing: 0.02em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .team-name span { display: block; }
+    .name-away { left: 450px; width: 310px; }
+    .name-home { left: 1145px; width: 320px; }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="stage">
+      <div class="bg" id="background"></div>
+      <div class="title" id="title">GAME DAY</div>
+      <div class="date" id="date">WEDNESDAY, OCTOBER 21</div>
+      <img class="crest crest-away" id="away-crest" alt="">
+      <img class="crest crest-home" id="home-crest" alt="">
+      <div class="team-name name-away" id="away-name"></div>
+      <div class="team-name name-home" id="home-name"></div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/liveBarn/';
+  const ANIMATION_STILL = true;
+
+  const GRAPHIC = {
+    pageTitle: 'LiveBarn Game Day',
+    fonts: {
+      body: '"Roboto Condensed", "Arial Narrow", sans-serif',
+      display: '"Roboto", "Arial Black", sans-serif',
+      date: '"Poppins", "Arial", sans-serif'
+    },
+    colors: {
+      title: '#ffffff',
+      date: '#ffffff',
+      name: '#060709'
+    },
+    images: {
+      background: 'gameday-bg.png',
+      awayCrest: 'knights.png',
+      homeCrest: 'predators.png'
+    },
+    text: {
+      title: 'GAME DAY',
+      date: 'WEDNESDAY, OCTOBER 21',
+      awayTeamName: 'WILKES-BARRE/\nSCRANTON\nKNIGHTS',
+      homeTeamName: 'PITTSBURGH\nPREDATORS'
+    },
+    animation: { hold: 6 }
+  };
+
+  function cssUrl(imageUrl) {
+    return 'url("' + String(imageUrl).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '")';
+  }
+
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    var base = (location.protocol === 'file:') ? location.href : TEMPLATE_DIR;
+    try { return new URL(url, base).href; }
+    catch (e) { return base + encodeURIComponent(url); }
+  }
+
+  function setBgImage(el, imageUrl, asVar) {
+    if (!el) return;
+    imageUrl = resolveAssetUrl(imageUrl);
+    if (imageUrl) {
+      if (el.tagName === 'IMG') {
+        el.src = imageUrl;
+        el.style.display = '';
+      } else if (asVar) el.style.setProperty('--bg-image', cssUrl(imageUrl));
+      else el.style.backgroundImage = cssUrl(imageUrl);
+      el.classList.add('has-image');
+      return;
+    }
+    if (el.tagName === 'IMG') {
+      el.removeAttribute('src');
+      el.style.display = 'none';
+    } else if (asVar) el.style.removeProperty('--bg-image');
+    else el.style.backgroundImage = 'none';
+    el.classList.remove('has-image');
+  }
+
+  function setLines(id, name) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var lines = String(name == null ? '' : name).split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+    el.textContent = '';
+    lines.forEach(function (line) {
+      var span = document.createElement('span');
+      span.textContent = line;
+      el.appendChild(span);
+    });
+  }
+
+  function applyGraphic(config) {
+    if (config && config.animation) Object.assign((window.GRAPHIC || GRAPHIC).animation, config.animation);
+    document.title = config.pageTitle;
+    var overlay = document.querySelector('.overlay');
+    var c = config.colors || {};
+    var f = config.fonts || {};
+    var images = config.images || {};
+    var t = config.text || {};
+    if (overlay) {
+      if (f.body) overlay.style.setProperty('--font-body', f.body);
+      if (f.display) overlay.style.setProperty('--font-display', f.display);
+      if (f.date) overlay.style.setProperty('--font-date', f.date);
+      if (c.title) overlay.style.setProperty('--title-color', c.title);
+      if (c.date) overlay.style.setProperty('--date-color', c.date);
+      if (c.name) overlay.style.setProperty('--name-color', c.name);
+    }
+    setBgImage(document.getElementById('background'), images.background, true);
+    setBgImage(document.getElementById('away-crest'), images.awayCrest);
+    setBgImage(document.getElementById('home-crest'), images.homeCrest);
+    var titleEl = document.getElementById('title');
+    if (titleEl) {
+      titleEl.textContent = t.title || '';
+      titleEl.style.display = t.title ? '' : 'none';
+    }
+    var dateEl = document.getElementById('date');
+    if (dateEl) {
+      dateEl.textContent = t.date || '';
+      dateEl.style.display = t.date ? '' : 'none';
+    }
+    setLines('away-name', t.awayTeamName);
+    setLines('home-name', t.homeTeamName);
+  }
+
+  function applyAnimationTiming() {}
+  function scheduleExit() {}
+
+  function getTemplateTotalDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var a = config.animation || {};
+    return a.hold != null ? Number(a.hold) : 6;
+  }
+
+  function preloadImages(urls) {
+    var list = (urls || []).filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (url) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve;
+        img.src = url;
+      });
+    }));
+  }
+
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    var overlay = document.querySelector('.overlay');
+    applyAnimationTiming(overlay, config.animation);
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+  }
+
+  function initGraphic(config) {
+    applyGraphic(config);
+    var whenReady = function () {
+      return preloadImages(Object.values(config.images || {}).map(resolveAssetUrl)).then(function () {
+        startAnimation(config);
+      });
+    };
+    if (document.readyState === 'complete') whenReady();
+    else window.addEventListener('load', whenReady, { once: true });
+  }
+
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.getTemplateTotalDuration = getTemplateTotalDuration;
+  window.ANIMATION_STILL = ANIMATION_STILL;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>
