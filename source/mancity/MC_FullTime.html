@@ -27,6 +27,7 @@
       --font-display: "Poppins", "Arial", sans-serif;
       --title-color: #ffffff;
       --date-color: #ffffff;
+      --date-color: #ffc659;
       --label-color: #1c2c5b;
       --cell-color: #ffffff;
       --final-color: #1c2c5b;
@@ -47,10 +48,11 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 148px;
+      top: 118px;
       color: var(--title-color);
-      font: 700 118px/1 var(--font-display);
-      letter-spacing: 0.02em;
+      font: 700 132px/0.9 var(--font-display);
+      letter-spacing: 0.08em;
+      text-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
       text-align: center;
       text-transform: uppercase;
       white-space: nowrap;
@@ -61,20 +63,23 @@
       right: 0;
       top: 318px;
       color: var(--date-color);
-      font: 500 32px/1 var(--font-body);
-      letter-spacing: 0.14em;
+      font: 500 28px/1 var(--font-body);
+      letter-spacing: 0.32em;
+      color: #ffc659;
       text-align: center;
       text-transform: uppercase;
     }
     .crest {
       position: absolute;
       left: 470px;
-      width: 150px;
+      width: 168px;
+      height: 168px;
       object-fit: contain;
       object-position: center;
+      filter: drop-shadow(0 10px 16px rgba(8, 16, 36, 0.28));
     }
-    .crest-away { top: 500px; height: 150px; }
-    .crest-home { top: 680px; height: 150px; }
+    .crest-away { top: 488px; }
+    .crest-home { top: 672px; }
     .board {
       position: absolute;
       left: 660px;
@@ -103,14 +108,15 @@
     }
     .row { margin-bottom: 14px; }
     .cell {
-      height: 118px;
+      height: 128px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--cell-color);
       color: var(--digit-color);
-      font: 700 72px/1 var(--font-body);
-      border-radius: 8px;
+      font: 700 78px/1 var(--font-body);
+      border-radius: 14px;
+      box-shadow: 0 10px 18px rgba(12, 22, 48, 0.12);
     }
     .cell.final { background: var(--final-color); color: #ffffff; }
     .notes {
@@ -175,7 +181,7 @@
     },
     colors: {
       title: '#ffffff',
-      date: '#ffffff',
+      date: '#ffc659',
       label: '#1c2c5b',
       cell: '#ffffff',
       final: '#1c2c5b',

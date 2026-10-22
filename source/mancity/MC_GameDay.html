@@ -26,15 +26,15 @@
       --font-body: "Roboto Condensed", "Arial Narrow", sans-serif;
       --font-display: "Roboto", "Arial Black", sans-serif;
       --font-date: "Poppins", "Arial", sans-serif;
-      --title-color: #1c2c5b;
-      --date-color: #1c2c5b;
+      --title-color: #ffffff;
+      --date-color: #ffc659;
       --name-color: #1c2c5b;
     }
     .stage { position: absolute; inset: 0; }
     .bg {
       position: absolute;
       inset: 0;
-      background-color: #6cabdd;
+      background-color: #0c1630;
       background-image: var(--bg-image);
       background-size: 100% 100%;
       background-position: center;
@@ -44,10 +44,11 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 188px;
+      top: 150px;
       color: var(--title-color);
-      font: 900 156px/0.9 var(--font-display);
-      letter-spacing: 0.01em;
+      font: 900 168px/0.86 var(--font-display);
+      letter-spacing: 0.04em;
+      text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
       text-align: center;
       text-transform: uppercase;
       white-space: nowrap;
@@ -56,10 +57,10 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 392px;
+      top: 360px;
       color: var(--date-color);
-      font: 500 34px/1 var(--font-date);
-      letter-spacing: 0.16em;
+      font: 500 32px/1 var(--font-date);
+      letter-spacing: 0.28em;
       text-align: center;
       text-transform: uppercase;
     }
@@ -68,19 +69,19 @@
       object-fit: contain;
       object-position: center;
     }
-    .crest-away { left: 298px; top: 552px; width: 139px; height: 172px; }
-    .crest-home { left: 1480px; top: 549px; width: 167px; height: 165px; }
+    .crest-away { left: 268px; top: 545px; width: 190px; height: 190px; }
+    .crest-home { left: 1462px; top: 545px; width: 190px; height: 190px; }
     .team-name {
       position: absolute;
-      top: 575px;
-      height: 150px;
+      top: 560px;
+      height: 170px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       color: var(--name-color);
-      font: 700 40px/1.05 var(--font-body);
-      letter-spacing: 0.02em;
+      font: 700 52px/0.95 var(--font-body);
+      letter-spacing: 0.06em;
       text-align: center;
       text-transform: uppercase;
     }
@@ -115,8 +116,8 @@
       date: '"Poppins", "Arial", sans-serif'
     },
     colors: {
-      title: '#1c2c5b',
-      date: '#1c2c5b',
+      title: '#ffffff',
+      date: '#ffc659',
       name: '#1c2c5b'
     },
     images: {
