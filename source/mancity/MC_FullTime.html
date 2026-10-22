@@ -48,7 +48,7 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 118px;
+      top: 96px;
       color: var(--title-color);
       font: 700 132px/0.9 var(--font-display);
       letter-spacing: 0.08em;
@@ -61,30 +61,31 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 318px;
+      top: 268px;
       color: var(--date-color);
       font: 500 28px/1 var(--font-body);
       letter-spacing: 0.32em;
+      padding-left: 0.32em;
       color: #ffc659;
       text-align: center;
       text-transform: uppercase;
     }
     .crest {
       position: absolute;
-      left: 470px;
-      width: 168px;
-      height: 168px;
+      left: 360px;
+      width: 148px;
+      height: 148px;
       object-fit: contain;
       object-position: center;
       filter: drop-shadow(0 10px 16px rgba(8, 16, 36, 0.28));
     }
-    .crest-away { top: 488px; }
-    .crest-home { top: 672px; }
+    .crest-away { top: 530px; }
+    .crest-home { top: 700px; }
     .board {
       position: absolute;
-      left: 660px;
-      top: 468px;
-      width: 760px;
+      left: 560px;
+      top: 500px;
+      width: 1000px;
     }
     .labels, .row {
       display: grid;
@@ -108,7 +109,7 @@
     }
     .row { margin-bottom: 14px; }
     .cell {
-      height: 128px;
+      height: 140px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -340,6 +341,17 @@
   window.ANIMATION_STILL = ANIMATION_STILL;
   window.GRAPHIC = GRAPHIC;
   initGraphic(GRAPHIC);
+
+  function fitOverlay() {
+    if (window.__RENDER_WAIT_FOR_GO__) return;
+    var overlay = document.querySelector('.overlay');
+    if (!overlay) return;
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    overlay.style.transform = 'scale(' + scale + ')';
+    overlay.style.transformOrigin = 'top left';
+  }
+  window.addEventListener('resize', fitOverlay);
+  fitOverlay();
   </script>
 </body>
 </html>

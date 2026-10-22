@@ -61,6 +61,7 @@
       color: var(--date-color);
       font: 500 32px/1 var(--font-date);
       letter-spacing: 0.28em;
+      padding-left: 0.28em;
       text-align: center;
       text-transform: uppercase;
     }
@@ -69,8 +70,8 @@
       object-fit: contain;
       object-position: center;
     }
-    .crest-away { left: 268px; top: 545px; width: 190px; height: 190px; }
-    .crest-home { left: 1462px; top: 545px; width: 190px; height: 190px; }
+    .crest-away { left: 248px; top: 560px; width: 170px; height: 170px; }
+    .crest-home { left: 1502px; top: 560px; width: 170px; height: 170px; }
     .team-name {
       position: absolute;
       top: 560px;
@@ -80,14 +81,14 @@
       align-items: center;
       justify-content: center;
       color: var(--name-color);
-      font: 700 52px/0.95 var(--font-body);
-      letter-spacing: 0.06em;
+      font: 700 42px/1 var(--font-body);
+      letter-spacing: 0.02em;
       text-align: center;
       text-transform: uppercase;
     }
     .team-name span { display: block; }
-    .name-away { left: 450px; width: 310px; }
-    .name-home { left: 1145px; width: 320px; }
+    .name-away { left: 438px; width: 320px; }
+    .name-home { left: 1188px; width: 290px; }
   </style>
 </head>
 <body>
@@ -261,6 +262,17 @@
   window.ANIMATION_STILL = ANIMATION_STILL;
   window.GRAPHIC = GRAPHIC;
   initGraphic(GRAPHIC);
+
+  function fitOverlay() {
+    if (window.__RENDER_WAIT_FOR_GO__) return;
+    var overlay = document.querySelector('.overlay');
+    if (!overlay) return;
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    overlay.style.transform = 'scale(' + scale + ')';
+    overlay.style.transformOrigin = 'top left';
+  }
+  window.addEventListener('resize', fitOverlay);
+  fitOverlay();
   </script>
 </body>
 </html>
