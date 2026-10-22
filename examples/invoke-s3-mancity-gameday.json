@@ -1,0 +1,10 @@
+{
+  "htmlS3Key": "templates/mancity/MC_GameDay.html",
+  "outputS3Key": "renders/mancity-gameday.webm",
+  "format": "webm",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25
+}
