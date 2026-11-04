@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manchester City score</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    .overlay {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+      font-family: "Barlow Condensed", Impact, sans-serif;
+      --home: #C8102E; --away: #3FA0E0; --ink: #ffffff; --ground: #071833;
+    }
+    .overlay * { box-sizing: border-box; animation-play-state: paused; }
+    .overlay.is-ready * { animation-play-state: running; }
+    .bug {
+      position: absolute; left: 48px; top: 36px; height: 74px; display: flex; color: var(--ink);
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
+      animation: score-in .4s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .overlay.is-exiting .bug { animation: score-out .35s ease both; }
+    .end { width: 78px; display: flex; align-items: center; justify-content: center; }
+    .home { background: var(--home); }
+    .away { background: var(--away); }
+    .end img { width: 52px; height: 52px; object-fit: contain; }
+    .mid { display: flex; align-items: center; gap: 14px; padding: 0 16px; background: var(--ground); font: 800 52px/1 "Barlow Condensed", Impact, sans-serif; }
+    .mid img { width: 36px; height: 36px; object-fit: contain; }
+    @keyframes score-in { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+    @keyframes score-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-36px); } }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <div class="bug">
+      <div class="end home"><img id="home-crest" alt=""></div>
+      <div class="mid"><span id="home-score"></span><img id="league-crest" alt=""><span id="away-score"></span></div>
+      <div class="end away"><img id="away-crest" alt=""></div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/mancity/';
+  const GRAPHIC = {
+    pageTitle: 'Manchester City score',
+    colors: { home: '#C8102E', away: '#3FA0E0', ink: '#ffffff', ground: '#071833' },
+    images: { homeCrest: 'home.svg', awayCrest: 'city.png', leagueCrest: 'league.svg' },
+    text: { homeScore: '0', awayScore: '0' },
+    animation: { hold: 3, tailPad: 0.2 }
+  };
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    var base = (location.protocol === 'file:') ? location.href : TEMPLATE_DIR;
+    try { return new URL(url, base).href; } catch (e) { return base + encodeURIComponent(url); }
+  }
+  function setImg(id, url) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    url = resolveAssetUrl(url);
+    if (url) { el.src = url; el.style.display = ''; }
+    else { el.removeAttribute('src'); el.style.display = 'none'; }
+  }
+  function applyColors(config) {
+    var overlay = document.querySelector('.overlay');
+    var c = (config && config.colors) || {};
+    Object.keys(c).forEach(function (key) { if (overlay && c[key]) overlay.style.setProperty('--' + key, c[key]); });
+  }
+  function applyGraphic(config) {
+    config = config || GRAPHIC;
+    document.title = config.pageTitle || GRAPHIC.pageTitle;
+    applyColors(config);
+    var images = config.images || {};
+    var text = config.text || {};
+    setImg('home-crest', images.homeCrest);
+    setImg('away-crest', images.awayCrest);
+    setImg('league-crest', images.leagueCrest);
+    document.getElementById('home-score').textContent = text.homeScore == null ? '' : String(text.homeScore);
+    document.getElementById('away-score').textContent = text.awayScore == null ? '' : String(text.awayScore);
+  }
+  function applyAnimationTiming() {}
+  function preloadImages(urls) {
+    var list = (urls || []).filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (url) {
+      return new Promise(function (resolve) { var img = new Image(); img.onload = img.onerror = resolve; img.src = url; });
+    }));
+  }
+  function startAnimation() {
+    if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
+    var overlay = document.querySelector('.overlay');
+    if (overlay) overlay.classList.add('is-ready');
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    var ready = function () { preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(startAnimation); };
+    if (document.readyState === 'complete') ready();
+    else window.addEventListener('load', ready, { once: true });
+  }
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manchester City second half</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    .overlay {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+      --ground: #0B1F4D; --ink: #ffffff;
+    }
+    .overlay * { box-sizing: border-box; animation-play-state: paused; }
+    .overlay.is-ready * { animation-play-state: running; }
+    .plate {
+      position: absolute; inset: 0; background: var(--ground); color: var(--ink);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+      animation: half-in .4s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .overlay.is-exiting .plate { animation: half-out .4s ease both; }
+    .crests { display: flex; gap: 22px; }
+    .crests img { width: 64px; height: 64px; object-fit: contain; }
+    .label { font: 800 148px/0.9 "Barlow Condensed", Impact, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+    @keyframes half-in { from { opacity: 0; transform: translateX(-70px); } to { opacity: 1; transform: none; } }
+    @keyframes half-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(70px); } }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <div class="plate">
+      <div class="crests"><img id="home-crest" alt=""><img id="away-crest" alt=""></div>
+      <div class="label" id="label"></div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/mancity/';
+  const GRAPHIC = {
+    pageTitle: 'Manchester City second half',
+    colors: { ground: '#0B1F4D', ink: '#ffffff' },
+    images: { homeCrest: 'home.svg', awayCrest: 'city.png' },
+    text: { label: '2ND HALF' },
+    animation: { hold: 1.35, tailPad: 0.2 }
+  };
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    var base = (location.protocol === 'file:') ? location.href : TEMPLATE_DIR;
+    try { return new URL(url, base).href; } catch (e) { return base + encodeURIComponent(url); }
+  }
+  function setImg(id, url) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    url = resolveAssetUrl(url);
+    if (url) { el.src = url; el.style.display = ''; }
+    else { el.removeAttribute('src'); el.style.display = 'none'; }
+  }
+  function applyColors(config) {
+    var overlay = document.querySelector('.overlay');
+    var c = (config && config.colors) || {};
+    Object.keys(c).forEach(function (key) { if (overlay && c[key]) overlay.style.setProperty('--' + key, c[key]); });
+  }
+  function applyGraphic(config) {
+    config = config || GRAPHIC;
+    document.title = config.pageTitle || GRAPHIC.pageTitle;
+    applyColors(config);
+    var images = config.images || {};
+    var text = config.text || {};
+    setImg('home-crest', images.homeCrest);
+    setImg('away-crest', images.awayCrest);
+    document.getElementById('label').textContent = text.label == null ? '' : String(text.label);
+  }
+  function applyAnimationTiming() {}
+  function preloadImages(urls) {
+    var list = (urls || []).filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (url) {
+      return new Promise(function (resolve) { var img = new Image(); img.onload = img.onerror = resolve; img.src = url; });
+    }));
+  }
+  function startAnimation() {
+    if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
+    var overlay = document.querySelector('.overlay');
+    if (overlay) overlay.classList.add('is-ready');
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    var ready = function () { preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(startAnimation); };
+    if (document.readyState === 'complete') ready();
+    else window.addEventListener('load', ready, { once: true });
+  }
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

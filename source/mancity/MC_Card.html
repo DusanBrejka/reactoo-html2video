@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manchester City card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    .overlay {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+      font-family: "Barlow Condensed", Impact, sans-serif;
+      --bar: #0C2C6B; --ink: #ffffff; --label: #F3E23A; --label-ink: #102044;
+    }
+    .overlay * { box-sizing: border-box; animation-play-state: paused; }
+    .overlay.is-ready * { animation-play-state: running; }
+    .card {
+      position: absolute; right: 64px; bottom: 96px; width: 640px;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.35));
+      animation: card-in .4s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .overlay.is-exiting .card { animation: card-out .4s ease both; }
+    .namebar { height: 72px; display: flex; align-items: center; gap: 16px; padding: 0 22px 0 16px; background: var(--bar); color: var(--ink); }
+    .namebar img { width: 52px; height: 52px; object-fit: contain; }
+    .name { font: 700 40px/1 "Barlow Condensed", Impact, sans-serif; letter-spacing: .01em; }
+    .num {
+      position: absolute; left: 78px; top: -18px; background: var(--bar); color: var(--ink);
+      font: 700 18px/1 "Barlow Condensed", Impact, sans-serif; padding: 4px 8px;
+    }
+    .tag {
+      position: absolute; right: 0; top: 72px; background: var(--label); color: var(--label-ink);
+      font: 800 15px/1 "Barlow Condensed", Impact, sans-serif; letter-spacing: .16em;
+      padding: 6px 12px; transform-origin: right center;
+      animation: tag-in .28s ease .3s both;
+    }
+    @keyframes card-in { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+    @keyframes card-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(40px); } }
+    @keyframes tag-in { from { opacity: 0; transform: scaleX(.3); } to { opacity: 1; transform: scaleX(1); } }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <div class="card">
+      <div class="num" id="number"></div>
+      <div class="namebar"><img id="crest" alt=""><span class="name" id="name"></span></div>
+      <div class="tag" id="label"></div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/mancity/';
+  const GRAPHIC = {
+    pageTitle: 'Manchester City card',
+    colors: { bar: '#0C2C6B', ink: '#ffffff', label: '#F3E23A', 'label-ink': '#102044' },
+    images: { crest: 'home.svg' },
+    text: { number: '47', name: 'Ryan Gravenberch', label: 'YELLOW CARD' },
+    animation: { hold: 2.8, tailPad: 0.2 }
+  };
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    var base = (location.protocol === 'file:') ? location.href : TEMPLATE_DIR;
+    try { return new URL(url, base).href; } catch (e) { return base + encodeURIComponent(url); }
+  }
+  function applyColors(config) {
+    var overlay = document.querySelector('.overlay');
+    var c = (config && config.colors) || {};
+    Object.keys(c).forEach(function (key) { if (overlay && c[key]) overlay.style.setProperty('--' + key, c[key]); });
+  }
+  function applyGraphic(config) {
+    config = config || GRAPHIC;
+    document.title = config.pageTitle || GRAPHIC.pageTitle;
+    applyColors(config);
+    var images = config.images || {};
+    var text = config.text || {};
+    var crest = document.getElementById('crest');
+    var src = resolveAssetUrl(images.crest);
+    if (src) { crest.src = src; crest.style.display = ''; } else { crest.removeAttribute('src'); crest.style.display = 'none'; }
+    document.getElementById('number').textContent = text.number == null ? '' : String(text.number);
+    document.getElementById('name').textContent = text.name == null ? '' : String(text.name);
+    var label = document.getElementById('label');
+    var labelText = text.label == null ? '' : String(text.label);
+    label.textContent = labelText;
+    label.style.display = labelText ? '' : 'none';
+  }
+  function applyAnimationTiming() {}
+  function preloadImages(urls) {
+    var list = (urls || []).filter(Boolean);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (url) {
+      return new Promise(function (resolve) { var img = new Image(); img.onload = img.onerror = resolve; img.src = url; });
+    }));
+  }
+  function startAnimation() {
+    if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
+    var overlay = document.querySelector('.overlay');
+    if (overlay) overlay.classList.add('is-ready');
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    var ready = function () { preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(startAnimation); };
+    if (document.readyState === 'complete') ready();
+    else window.addEventListener('load', ready, { once: true });
+  }
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

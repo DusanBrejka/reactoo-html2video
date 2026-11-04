@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manchester City minute</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    .overlay {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+      --pill: #1E4E9A; --ink: #ffffff;
+    }
+    .overlay * { box-sizing: border-box; animation-play-state: paused; }
+    .overlay.is-ready * { animation-play-state: running; }
+    .pill {
+      position: absolute; left: 64px; bottom: 72px; margin: 0;
+      background: var(--pill); color: var(--ink);
+      font: italic 800 52px/1 "Barlow Condensed", Impact, sans-serif;
+      padding: 14px 28px 12px; border-radius: 40px;
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
+      animation: clock-in .35s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .overlay.is-exiting .pill { animation: clock-out .3s ease both; }
+    @keyframes clock-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    @keyframes clock-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(20px); } }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <p class="pill" id="minute"></p>
+  </div>
+  <script>
+  'use strict';
+  const GRAPHIC = {
+    pageTitle: 'Manchester City minute',
+    colors: { pill: '#1E4E9A', ink: '#ffffff' },
+    text: { minute: "19'" },
+    animation: { hold: 3, tailPad: 0.2 }
+  };
+  function applyColors(config) {
+    var overlay = document.querySelector('.overlay');
+    var c = (config && config.colors) || {};
+    Object.keys(c).forEach(function (key) { if (overlay && c[key]) overlay.style.setProperty('--' + key, c[key]); });
+  }
+  function applyGraphic(config) {
+    config = config || GRAPHIC;
+    document.title = config.pageTitle || GRAPHIC.pageTitle;
+    applyColors(config);
+    var text = (config.text || {}).minute;
+    document.getElementById('minute').textContent = text == null ? '' : String(text);
+  }
+  function applyAnimationTiming() {}
+  function startAnimation() {
+    if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
+    var overlay = document.querySelector('.overlay');
+    if (overlay) overlay.classList.add('is-ready');
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    if (document.readyState === 'complete') startAnimation();
+    else window.addEventListener('load', startAnimation, { once: true });
+  }
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = applyAnimationTiming;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>
