@@ -17,17 +17,30 @@
       position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; background: var(--ground); color: var(--ink);
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
     }
-    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
-    .overlay.is-exiting .beat { animation: beat-out .28s linear both; }
+    .overlay.is-ready .plate-mask { animation: sting-in .95s cubic-bezier(.16,1,.3,1) both; }
+    .overlay.is-ready.is-exiting .plate-mask { animation: sting-out .85s cubic-bezier(.7,0,.84,0) both; }
+    .overlay.is-ready.is-exiting .plate { animation: sting-slide-out .85s cubic-bezier(.7,0,.84,0) both; }
+    .row img { opacity: 0; transform: scale(.74); }
+    .overlay.is-ready .row img:first-child { animation: crest-in .75s linear .22s both; }
+    .overlay.is-ready .row img:last-child { animation: crest-in .75s linear .46s both; }
+    .overlay.is-ready .label { animation: label-in .55s cubic-bezier(.16,1,.3,1) .78s both; }
+    .overlay.is-ready.is-exiting .row img { animation: crest-out .85s linear both; }
+    .overlay.is-ready.is-exiting .label { animation: label-out .85s linear both; }
     .row { display: flex; align-items: center; gap: 90px; }
     .row img { width: 340px; height: 460px; object-fit: contain; }
     .label {
-      position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%);
+      position: absolute; left: 50%; bottom: 78px; opacity: 0;
       border: 1.5px solid rgba(255,255,255,.85); border-radius: 20px;
       font: 600 16px/1 Barlow, sans-serif; letter-spacing: .18em;
       padding: 7px 16px 6px; text-transform: uppercase;
     }
-    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
+    @keyframes sting-in { from { width: 0; left: 0; } to { width: 1920px; left: 0; } }
+    @keyframes sting-out { 0%, 18% { width: 1920px; left: 0; } 100% { width: 0; left: 1920px; } }
+    @keyframes sting-slide-out { 0%, 18% { left: 0; } 100% { left: -1920px; } }
+    @keyframes crest-in { 0% { opacity: 0; transform: scale(.74); } 68% { opacity: 1; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes crest-out { 0%, 8% { opacity: 1; transform: scale(1); } 45% { opacity: 0; transform: scale(.8); } 100% { opacity: 0; transform: scale(.8); } }
+    @keyframes label-in { from { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.9); } to { opacity: 1; transform: translateX(-50%); } }
+    @keyframes label-out { 0% { opacity: 1; transform: translateX(-50%); } 32% { opacity: 0; transform: translateX(-50%) translateY(10px); } 100% { opacity: 0; transform: translateX(-50%) translateY(10px); } }
   </style>
 </head>
 <body>
@@ -38,7 +51,6 @@
       <div class="label" id="label"></div>
     </div>
     </div>
-    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -48,7 +60,7 @@
     colors: { ground: '#0A3A78', ink: '#ffffff' },
     images: { homeCrest: 'crest-liverpool.png', awayCrest: 'crest-city.png' },
     text: { label: '2026/27 SEASON' },
-    animation: { hold: 1.2, tailPad: 0.2 }
+    animation: { hold: 2.6, tailPad: 0.2 }
   };
   function resolveAssetUrl(url) {
     if (!url) return '';
@@ -81,30 +93,40 @@
     label.style.display = label.textContent ? '' : 'none';
   }
   function applyAnimationTiming() {}
-  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
-  function wipePhase(t, hold, inn, outd) {
-    if (t < inn) return { phase: 'in', p: wipeEase(t / inn) };
-    if (t < hold) return { phase: 'hold', p: 1 };
-    return { phase: 'out', p: wipeEase(Math.min(1, (t - hold) / outd)) };
-  }
+  function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+  function easeOut(x) { x = clamp01(x); return 1 - Math.pow(1 - x, 3); }
+  function win(t, delay, dur) { return clamp01((t - delay) / dur); }
   function seekGraphic(t, config) {
-    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 1.2;
-    var w = wipePhase(t, hold, 0.26, 0.28);
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 2.6;
+    var exiting = t >= hold;
+    var u = exiting ? (t - hold) / 0.85 : t;
+    var open = exiting ? (u < 0.18 ? 0 : easeOut((u - 0.18) / 0.82)) : easeOut(t / 0.95);
     var full = 1920;
     var mask = document.querySelector('.plate-mask');
     var plate = document.querySelector('.plate');
     var vis, left;
-    if (w.phase === 'out') {
-      left = Math.round(full * w.p);
+    if (exiting) {
+      left = Math.round(full * clamp01(open));
       vis = full - left;
     } else {
       left = 0;
-      vis = Math.round(full * w.p);
+      vis = Math.round(full * clamp01(open));
     }
+    document.querySelectorAll('.plate-mask, .plate, .row img, .label').forEach(function (node) { node.style.animation = 'none'; });
     mask.style.left = left + 'px';
     mask.style.width = vis + 'px';
     mask.style.visibility = vis <= 0 ? 'hidden' : 'visible';
     plate.style.left = (-left) + 'px';
+    document.querySelectorAll('.row img').forEach(function (img, i) {
+      var p = exiting ? (u < 0.08 ? 1 : 1 - clamp01((u - 0.08) / 0.37)) : win(t, i === 0 ? 0.22 : 0.46, 0.75);
+      var s = exiting ? (0.8 + 0.2 * p) : (p < 0.68 ? 0.74 + 0.31 * (p / 0.68) : 1.05 - 0.05 * ((p - 0.68) / 0.32));
+      img.style.opacity = String(clamp01(p));
+      img.style.transform = 'scale(' + s.toFixed(3) + ')';
+    });
+    var label = document.querySelector('.label');
+    var lp = exiting ? 1 - clamp01(u / 0.32) : win(t, 0.78, 0.55);
+    label.style.opacity = String(clamp01(lp));
+    label.style.transform = 'translateX(-50%) translateY(' + ((1 - clamp01(lp)) * 16) + 'px) scale(' + (0.9 + 0.1 * clamp01(lp)) + ')';
   }
   window.__RENDER_USE_TEMPLATE_SEEK__ = true;
   window.seekGraphic = seekGraphic;
@@ -115,16 +137,33 @@
       return new Promise(function (resolve) { var img = new Image(); img.onload = img.onerror = resolve; img.src = url; });
     }));
   }
-  function startAnimation() {
+  function scheduleExit(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var holdSec = (config.animation && config.animation.hold != null) ? Number(config.animation.hold) : 2.6;
+    setTimeout(function () {
+      if (overlay && !window.__RENDER_WAIT_FOR_GO__) overlay.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+  function startAnimation(config) {
     if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
     var overlay = document.querySelector('.overlay');
-    if (overlay) overlay.classList.add('is-ready');
+    if (overlay) {
+      overlay.classList.remove('is-exiting');
+      overlay.classList.add('is-ready');
+    }
+    scheduleExit(config || window.GRAPHIC || GRAPHIC);
   }
   function initGraphic(config) {
     applyGraphic(config);
-    var ready = function () { preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(startAnimation); };
-    if (document.readyState === 'complete') ready();
-    else window.addEventListener('load', ready, { once: true });
+    var whenReady = function () {
+      preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(function () { startAnimation(config); });
+    };
+    if (document.readyState === 'complete') {
+      whenReady();
+    } else {
+      window.addEventListener('load', whenReady, { once: true });
+    }
   }
   window.applyGraphic = applyGraphic;
   window.applyAnimationTiming = applyAnimationTiming;

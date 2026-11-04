@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Matchday intro, Swiss grid</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&amp;display=swap">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    .overlay {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+      font-family: 'Archivo', system-ui, sans-serif;
+      opacity: 0.996;
+      --primary: #1D2BFF; --secondary: #0B0B0B; --accent: #FF4D00; --ground: #ECE8DF; --travel: 1;
+    }
+    .overlay * { box-sizing: border-box; animation-play-state: paused; }
+    .overlay.is-ready * { animation-play-state: running; }
+    .scene { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .pl { stroke-dasharray: var(--L); animation: draw var(--dur, .6s) cubic-bezier(.6,0,.2,1) both; }
+    .vl { transform-origin: 50% 0; animation: vl .7s cubic-bezier(.6,0,.2,1) both; }
+    .hl { transform-origin: 0 50%; animation: hl .9s cubic-bezier(.6,0,.2,1) both; }
+    .col { animation: colUp .35s cubic-bezier(.2,.9,.1,1) both, colOut .5s cubic-bezier(.7,0,.2,1) forwards; }
+    .ftxt { animation: ftxtIn .45s cubic-bezier(.2,.9,.1,1) .85s both, ftxtOut .01s 1.5s forwards; }
+    .sec { animation: secShow .01s 2s both, secOut .45s cubic-bezier(.7,0,.2,1) 5.5s forwards; }
+    .up { animation: up .55s cubic-bezier(.2,.9,.1,1) both; }
+    .fade { animation: fade .5s ease-out both; }
+    .panel { animation: panel .5s cubic-bezier(.7,0,.2,1) both; }
+    .dot { transform-box: fill-box; transform-origin: center; animation: dot .45s cubic-bezier(.2,1.6,.4,1) both; }
+    .prog { transform-origin: 0 50%; animation: hl 3.5s linear 2s both; }
+    .stk { animation: stkIn .3s cubic-bezier(.2,.9,.1,1) both, stkOut .25s cubic-bezier(.7,0,.2,1) 7s forwards; }
+    .sl { animation: slL .6s cubic-bezier(.2,.9,.1,1) both; }
+    .sr { animation: slR .6s cubic-bezier(.2,.9,.1,1) both; }
+    .rev { animation: rev .6s cubic-bezier(.7,0,.2,1) both; }
+    .drop { animation: drop .45s cubic-bezier(.2,.9,.1,1) both; }
+    .tick { animation: tick 2s steps(7, end) 7.5s both; }
+    .out { transform: translateY(1080px); }
+    .overlay.is-exiting .out { animation: outA 1.2s ease-in-out both; }
+    @keyframes draw { from { stroke-dashoffset: var(--L); } to { stroke-dashoffset: 0; } }
+    @keyframes vl { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes hl { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes colUp { from { transform: translateY(calc(var(--travel) * 1080px)); } to { transform: translateY(0); } }
+    @keyframes colOut { from { transform: translateY(0); } to { transform: translateY(calc(var(--travel) * -1080px)); } }
+    @keyframes ftxtIn { from { opacity: 0; transform: translateX(-160px); } to { opacity: 1; transform: none; } }
+    @keyframes ftxtOut { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes secShow { from { visibility: hidden; } to { visibility: visible; } }
+    @keyframes secOut { from { transform: translateX(0); } to { transform: translateX(calc(var(--travel) * -2100px)); } }
+    @keyframes up { from { transform: translateY(110%); } to { transform: translateY(0); } }
+    @keyframes fade { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @keyframes panel { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes dot { from { transform: scale(0); } to { transform: scale(1); } }
+    @keyframes stkIn { from { transform: scaleX(0) scaleY(1); } to { transform: scaleX(1) scaleY(1); } }
+    @keyframes stkOut { from { transform: scaleX(1) scaleY(1); } to { transform: scaleX(1) scaleY(0); } }
+    @keyframes slL { from { transform: translateX(-110%); } to { transform: translateX(0); } }
+    @keyframes slR { from { transform: translateX(110%); } to { transform: translateX(0); } }
+    @keyframes rev { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes drop { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    @keyframes tick { from { transform: translateX(0); } to { transform: translateX(calc(var(--travel) * 700px)); } }
+    @keyframes outA { 0% { transform: translateY(-1080px); } 35% { transform: translateY(0); } 65% { transform: translateY(0); } 100% { transform: translateY(1080px); } }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <div class="scene" id="scene">
+      <div class="vl" style="position:absolute;left:160px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.03s"></div>
+      <div class="vl" style="position:absolute;left:320px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.06s"></div>
+      <div class="vl" style="position:absolute;left:480px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.09s"></div>
+      <div class="vl" style="position:absolute;left:640px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.12s"></div>
+      <div class="vl" style="position:absolute;left:800px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.15s"></div>
+      <div class="vl" style="position:absolute;left:960px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.18s"></div>
+      <div class="vl" style="position:absolute;left:1120px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.21s"></div>
+      <div class="vl" style="position:absolute;left:1280px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.24s"></div>
+      <div class="vl" style="position:absolute;left:1440px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.27s"></div>
+      <div class="vl" style="position:absolute;left:1600px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.30s"></div>
+      <div class="vl" style="position:absolute;left:1760px;top:0;width:2px;height:1080px;background:var(--secondary);opacity:.12;animation-delay:.33s"></div>
+      <div class="hl" style="position:absolute;left:0;top:120px;width:1920px;height:2px;background:var(--secondary);opacity:.12;animation-delay:.3s"></div>
+      <div class="hl" style="position:absolute;left:0;top:960px;width:1920px;height:2px;background:var(--secondary);opacity:.12;animation-delay:.45s"></div>
+      <div class="col" data-travel style="position:absolute;left:0;top:0;width:386px;height:1080px;background:var(--primary);animation-delay:.5s,1.5s"></div>
+      <div class="col" data-travel style="position:absolute;left:384px;top:0;width:386px;height:1080px;background:var(--primary);animation-delay:.75s,1.5s"></div>
+      <div class="col" data-travel style="position:absolute;left:768px;top:0;width:386px;height:1080px;background:var(--primary);animation-delay:1s,1.5s"></div>
+      <div class="col" data-travel style="position:absolute;left:1152px;top:0;width:386px;height:1080px;background:var(--primary);animation-delay:1.25s,1.5s"></div>
+      <div class="col" data-travel style="position:absolute;left:1536px;top:0;width:386px;height:1080px;background:var(--primary);animation-delay:1.375s,1.5s"></div>
+      <div class="sec" data-travel style="position:absolute;inset:0">
+        <div style="position:absolute;left:92px;top:215px;height:216px;overflow:hidden"><div id="team" class="up" style="font-size:230px;font-weight:900;font-stretch:125%;line-height:.93;color:var(--secondary);animation-delay:2s">TEAM</div></div>
+        <div style="position:absolute;left:92px;top:440px;height:216px;overflow:hidden"><div id="news" class="up" style="font-size:230px;font-weight:900;font-stretch:125%;line-height:.93;color:var(--primary);animation-delay:2.25s">NEWS</div></div>
+        <div class="panel" style="position:absolute;left:1120px;top:152px;width:704px;height:560px;background:var(--primary);transform-origin:100% 50%;animation-delay:2.5s">
+          <svg viewBox="-20 -20 1090 720" width="664" height="438" aria-hidden="true" style="position:absolute;left:20px;top:20px;display:block">
+            <g style="fill:none;stroke:var(--ground);stroke-width:4px;opacity:.85">
+              <path class="pl" style="--L:3500px;--dur:.55s;animation-delay:2.75s" d="M0 0 H1050 V680 H0 Z"></path>
+              <path class="pl" style="--L:800px;--dur:.55s;animation-delay:3s" d="M525 0 V680"></path>
+              <circle class="pl" style="--L:650px;--dur:.55s;animation-delay:3.15s" cx="525" cy="340" r="91.5"></circle>
+              <path class="pl" style="--L:760px;--dur:.55s;animation-delay:3.3s" d="M0 138.4 H165 V541.6 H0"></path>
+              <path class="pl" style="--L:760px;--dur:.55s;animation-delay:3.3s" d="M1050 138.4 H885 V541.6 H1050"></path>
+              <path class="pl" style="--L:320px;--dur:.55s;animation-delay:3.45s" d="M0 248.4 H55 V431.6 H0"></path>
+              <path class="pl" style="--L:320px;--dur:.55s;animation-delay:3.45s" d="M1050 248.4 H995 V431.6 H1050"></path>
+              <path class="pl" style="--L:200px;--dur:.55s;animation-delay:3.6s" d="M165 267 A91.5 91.5 0 0 1 165 413"></path>
+              <path class="pl" style="--L:200px;--dur:.55s;animation-delay:3.6s" d="M885 267 A91.5 91.5 0 0 0 885 413"></path>
+            </g>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3s" cx="60" cy="340" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.08s" cx="250" cy="110" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.16s" cx="230" cy="260" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.24s" cx="230" cy="420" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.32s" cx="250" cy="570" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.4s" cx="430" cy="200" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.48s" cx="400" cy="340" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.56s" cx="430" cy="480" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.64s" cx="650" cy="150" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.72s" cx="700" cy="340" r="20"></circle>
+            <circle class="dot" style="fill:var(--ground);animation-delay:3.8s" cx="650" cy="530" r="20"></circle>
+          </svg>
+          <div id="starting-xi" class="fade" style="position:absolute;left:28px;top:470px;font-size:52px;font-weight:900;font-stretch:125%;line-height:.93;color:var(--ground);animation-delay:3.95s">STARTING XI</div>
+        </div>
+        <div class="prog" style="position:absolute;left:0;top:955px;width:1920px;height:12px;background:var(--accent)"></div>
+      </div>
+      <div class="stk" style="position:absolute;left:0;top:0;width:1920px;height:181px;background:var(--primary);transform-origin:0 50%;animation-delay:6s"></div>
+      <div class="stk" style="position:absolute;left:0;top:180px;width:1920px;height:181px;background:var(--accent);transform-origin:100% 50%;animation-delay:6.15s"></div>
+      <div class="stk" style="position:absolute;left:0;top:360px;width:1920px;height:181px;background:var(--primary);transform-origin:0 50%;animation-delay:6.3s"></div>
+      <div class="stk" style="position:absolute;left:0;top:540px;width:1920px;height:181px;background:var(--accent);transform-origin:100% 50%;animation-delay:6.45s"></div>
+      <div class="stk" style="position:absolute;left:0;top:720px;width:1920px;height:181px;background:var(--primary);transform-origin:0 50%;animation-delay:6.6s"></div>
+      <div class="stk" style="position:absolute;left:0;top:900px;width:1920px;height:181px;background:var(--accent);transform-origin:100% 50%;animation-delay:6.75s"></div>
+      <div style="position:absolute;left:80px;top:140px;width:1760px;height:300px;overflow:hidden"><div id="match" class="sl" style="font-size:330px;font-weight:900;font-stretch:125%;line-height:.93;color:var(--secondary);animation-delay:7s">MATCH</div></div>
+      <div style="position:absolute;left:80px;top:432px;width:1760px;height:300px;overflow:hidden"><div id="day" class="sr" style="text-align:right;font-size:330px;font-weight:900;font-stretch:125%;line-height:.93;color:var(--primary);animation-delay:7.12s">DAY</div></div>
+      <div class="panel" style="position:absolute;left:0;top:760px;width:1920px;height:180px;background:var(--secondary);transform-origin:0 50%;animation-delay:7.3s"></div>
+      <div id="focus" class="rev" style="position:absolute;left:80px;top:760px;height:180px;display:flex;align-items:center;font-size:120px;font-weight:300;font-stretch:125%;letter-spacing:.5em;color:var(--ground);animation-delay:7.55s">FOCUS</div>
+      <div style="position:absolute;left:1600px;top:760px;width:320px;height:180px;overflow:hidden"><div class="drop" style="width:100%;height:100%;background:var(--accent);animation-delay:7.75s"></div></div>
+      <div id="team-news" class="fade" style="position:absolute;left:96px;top:986px;font-size:28px;font-weight:700;letter-spacing:.24em;color:var(--secondary);animation-delay:8.2s">TEAM NEWS</div>
+      <div class="fade" style="position:absolute;left:1100px;top:988px;animation-delay:7.4s"><div class="tick" data-travel style="width:28px;height:28px;background:var(--primary)"></div></div>
+    </div>
+    <div class="out" style="position:absolute;left:0;top:0;width:322px;height:1080px;background:var(--primary);animation-delay:0s"></div>
+    <div class="out" style="position:absolute;left:320px;top:0;width:322px;height:1080px;background:var(--secondary);animation-delay:.03s"></div>
+    <div class="out" style="position:absolute;left:640px;top:0;width:322px;height:1080px;background:var(--primary);animation-delay:.06s"></div>
+    <div class="out" style="position:absolute;left:960px;top:0;width:322px;height:1080px;background:var(--accent);animation-delay:.09s"></div>
+    <div class="out" style="position:absolute;left:1280px;top:0;width:322px;height:1080px;background:var(--primary);animation-delay:.12s"></div>
+    <div class="out" style="position:absolute;left:1600px;top:0;width:322px;height:1080px;background:var(--secondary);animation-delay:.15s"></div>
+  </div>
+  <script>
+  'use strict';
+  var CARD_READY = 8.7;
+  var STING_DUR = 1.35;
+  var COVER_AT = 0.35;
+  var GRAPHIC = {
+    text: { team: 'TEAM', news: 'NEWS', startingXi: 'STARTING XI', match: 'MATCH', day: 'DAY', focus: 'FOCUS', teamNews: 'TEAM NEWS' },
+    colors: { primary: '#1D2BFF', secondary: '#0B0B0B', accent: '#FF4D00', background: '#ECE8DF' },
+    animation: { hold: 10, speed: 1, travel: 1 }
+  };
+  function num(value, fallback) { var n = Number(value); return isFinite(n) ? n : fallback; }
+  function speedOf(animation) { var speed = num(animation && animation.speed, 1); return speed > 0 ? speed : 1; }
+  function stingStart(animation) { return Math.max(num(animation && animation.hold, 10), CARD_READY / speedOf(animation)); }
+  function endMs(timing) {
+    if (!timing) return 0;
+    var delay = timing.delay || 0;
+    var duration = timing.duration;
+    if (typeof duration !== 'number' || !isFinite(duration)) duration = 0;
+    if (duration > 0 && duration < 20) duration *= 1000;
+    if (delay > 0 && delay < 20) delay *= 1000;
+    return delay + duration;
+  }
+  function setText(id, value) { var el = document.getElementById(id); if (el) el.textContent = value == null ? '' : String(value); }
+  function applyGraphic(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var text = config.text || {};
+    var colors = config.colors || {};
+    var overlay = document.querySelector('.overlay');
+    if (overlay) {
+      overlay.style.setProperty('--primary', colors.primary || GRAPHIC.colors.primary);
+      overlay.style.setProperty('--secondary', colors.secondary || GRAPHIC.colors.secondary);
+      overlay.style.setProperty('--accent', colors.accent || GRAPHIC.colors.accent);
+      overlay.style.setProperty('--ground', colors.background || GRAPHIC.colors.background);
+    }
+    setText('team', text.team != null ? text.team : GRAPHIC.text.team);
+    setText('news', text.news != null ? text.news : GRAPHIC.text.news);
+    setText('starting-xi', text.startingXi != null ? text.startingXi : GRAPHIC.text.startingXi);
+    setText('match', text.match != null ? text.match : GRAPHIC.text.match);
+    setText('day', text.day != null ? text.day : GRAPHIC.text.day);
+    setText('focus', text.focus != null ? text.focus : GRAPHIC.text.focus);
+    setText('team-news', text.teamNews != null ? text.teamNews : GRAPHIC.text.teamNews);
+  }
+  function applyAnimationTiming(overlay, timing) {
+    if (!overlay) return;
+    var travel = num(timing && timing.travel, 1);
+    if (!(travel > 0)) travel = 1;
+    overlay.style.setProperty('--travel', String(travel));
+  }
+  function seekNode(el, ms) {
+    if (!el.getAnimations) return;
+    el.getAnimations().forEach(function (anim) {
+      anim.pause();
+      var timing = anim.effect && anim.effect.getTiming ? anim.effect.getTiming() : null;
+      var end = endMs(timing);
+      var next = end > 0 && isFinite(end) ? Math.min(Math.max(ms, 0), end) : Math.max(ms, 0);
+      try { anim.currentTime = next; } catch (err) { /* ignore */ }
+    });
+  }
+  function clearBake(root) {
+    var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('[data-bake]')));
+    nodes.forEach(function (el) {
+      ['opacity', 'visibility', 'transform', 'filter', 'clipPath', 'webkitClipPath', 'letterSpacing', 'strokeDashoffset', 'animation'].forEach(function (prop) { el.style[prop] = ''; });
+      el.removeAttribute('data-bake');
+    });
+  }
+  function bake(root) {
+    var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')));
+    nodes.map(function (el) { return { el: el, cs: getComputedStyle(el) }; }).forEach(function (item) {
+      var el = item.el; var cs = item.cs;
+      el.style.opacity = cs.opacity;
+      el.style.visibility = cs.visibility;
+      if (cs.transform && cs.transform !== 'none') el.style.transform = cs.transform;
+      if (cs.filter && cs.filter !== 'none') el.style.filter = cs.filter;
+      if (cs.clipPath && cs.clipPath !== 'none') el.style.clipPath = cs.clipPath;
+      if (cs.webkitClipPath && cs.webkitClipPath !== 'none') el.style.webkitClipPath = cs.webkitClipPath;
+      if (cs.letterSpacing) el.style.letterSpacing = cs.letterSpacing;
+      if (cs.strokeDashoffset) el.style.strokeDashoffset = cs.strokeDashoffset;
+      if (cs.animationName && cs.animationName !== 'none') el.style.animation = 'none';
+      el.setAttribute('data-bake', '1');
+    });
+  }
+  function prepareFrame(timeSec, config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var scene = document.getElementById('scene');
+    if (!overlay || !scene) return;
+    applyGraphic(config);
+    applyAnimationTiming(overlay, config.animation || {});
+    var speed = speedOf(config.animation);
+    var start = stingStart(config.animation);
+    var exiting = timeSec >= start;
+    overlay.classList.remove('is-ready');
+    overlay.classList.toggle('is-exiting', exiting);
+    void overlay.offsetHeight;
+    var introMs = (exiting ? start : timeSec) * speed * 1000;
+    [scene].concat(Array.prototype.slice.call(scene.querySelectorAll('*'))).forEach(function (el) { seekNode(el, introMs); });
+    var stingMs = exiting ? (timeSec - start) * speed * 1000 : 0;
+    Array.prototype.forEach.call(overlay.querySelectorAll('.out'), function (el) { if (exiting) seekNode(el, stingMs); });
+    scene.style.opacity = exiting && ((timeSec - start) * speed) >= (COVER_AT * 1.2) ? '0' : '1';
+  }
+  function getOverlayRenderDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var speed = speedOf(config.animation);
+    return stingStart(config.animation) + (STING_DUR / speed) + 0.5;
+  }
+  var previewCoverTimer = null;
+  function scheduleExit(config) {
+    var overlay = document.querySelector('.overlay');
+    var holdSec = (config && config.animation && config.animation.hold != null)
+      ? Number(config.animation.hold) : GRAPHIC.animation.hold;
+    setTimeout(function () {
+      if (overlay) overlay.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var scene = document.getElementById('scene');
+    applyAnimationTiming(overlay, config.animation);
+    if (scene) scene.style.opacity = '';
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+    if (previewCoverTimer) clearTimeout(previewCoverTimer);
+    var holdSec = (config.animation && config.animation.hold != null)
+      ? Number(config.animation.hold) : GRAPHIC.animation.hold;
+    previewCoverTimer = setTimeout(function () {
+      previewCoverTimer = null;
+      if (scene && overlay && overlay.classList.contains('is-exiting')) scene.style.opacity = '0';
+    }, (holdSec + COVER_AT * 1.2) * 1000);
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    applyAnimationTiming(document.querySelector('.overlay'), (config && config.animation) || {});
+    if (window.__RENDER_WAIT_FOR_GO__) window.__RENDER_ARMED__ = true;
+  }
+  window.prepareFrame = prepareFrame;
+  window.getOverlayRenderDuration = getOverlayRenderDuration;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

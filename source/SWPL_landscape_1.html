@@ -648,6 +648,26 @@
     }, holdSec * 1000);
   }
 
+  function getTemplateTotalDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var a = config.animation || {};
+    var n = function (v, d) { return v != null ? Number(v) : d; };
+    var enterEnd = Math.max(
+      n(a.competitionTag, 0.25) + 0.95,
+      n(a.crestPanel, 0.45) + 0.7,
+      n(a.playerPanel, 0.95) + 0.85,
+      n(a.scorePanel, 1.05) + 0.85,
+      n(a.goalMeta, 1.5) + 0.55,
+      n(a.playerName, 1.65) + 0.75,
+      n(a.homeScore, 1.9) + 0.5,
+      n(a.awayScore, 2) + 0.5,
+      n(a.shadow, 2.4) + 1.1
+    );
+    var hold = n(a.hold, 5);
+    var exitEnd = Math.max(n(a.exitBar, 0.55), n(a.exitTag, 0.45));
+    return Math.max(hold, enterEnd) + exitEnd;
+  }
+
   function preloadImages(urls) {
     const list = urls.filter(Boolean);
     if (!list.length) return Promise.resolve();
@@ -813,6 +833,7 @@
   }
 
   window.GRAPHIC = GRAPHIC;
+  window.getTemplateTotalDuration = getTemplateTotalDuration;
   initGraphic(GRAPHIC);
   </script>
 

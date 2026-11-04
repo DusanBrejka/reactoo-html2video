@@ -552,6 +552,9 @@ function encodeFrames(format, fps, framesDir, outputPath, totalFrames, still) {
       const vp9 = [
         '-c:v', 'libvpx-vp9',
         '-pix_fmt', 'yuva420p',
+        '-deadline', 'realtime',
+        '-cpu-used', '4',
+        '-row-mt', '1',
         '-b:v', '4M',
         '-auto-alt-ref', '0'
       ];

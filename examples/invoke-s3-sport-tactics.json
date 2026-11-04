@@ -1,0 +1,9 @@
+{
+  "htmlS3Key": "templates/sport/MatchDay-Tactics.html",
+  "outputS3Key": "renders/sport-tactics.webm",
+  "width": 1920,
+  "height": 1080,
+  "templateWidth": 1920,
+  "templateHeight": 1080,
+  "fps": 25
+}

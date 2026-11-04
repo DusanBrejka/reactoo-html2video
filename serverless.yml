@@ -19,7 +19,7 @@ provider:
   architecture: x86_64
   region: ${opt:region, 'eu-central-1'}
   stage: ${opt:stage, 'dev3'}
-  timeout: 300
+  timeout: 900
   memorySize: 10240
   versionFunctions: false
   environment:
@@ -71,9 +71,10 @@ functions:
   render:
     handler: handler.render
     description: Render HTML overlay templates to video (WebM, ProRes, APNG, MP4) with optional GRAPHIC overrides
-    timeout: 300
+    timeout: 900
     memorySize: 10240
     ephemeralStorageSize: 2048
+    maximumRetryAttempts: 0
     layers:
       - !Ref ChromiumLambdaLayer
       - !Ref FfmpegLambdaLayer

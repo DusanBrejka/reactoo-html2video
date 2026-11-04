@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Matchday intro, tactics board</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&amp;family=Permanent+Marker&amp;display=swap">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    .overlay {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+      --primary: #F5D547; --secondary: #F3F1E8; --accent: #E4572E; --ground: #123829;
+      --travel: 1; --tilt-board: -1.5deg; --tilt-tape1: -3deg; --tilt-tape2: 2.5deg;
+      font-family: 'Kalam', system-ui, sans-serif;
+      opacity: 0.996;
+    }
+    .overlay * { box-sizing: border-box; animation-play-state: paused; }
+    .overlay.is-ready * { animation-play-state: running; }
+    
+body{margin:0}
+a{color:#ffffff}a:hover{color:#dddddd}
+.stage{font-family:'Kalam',system-ui,sans-serif}
+.stage *{box-sizing:border-box}
+.pl{stroke-dasharray:var(--L);stroke-dashoffset:0}
+.pl{animation:draw var(--dur,.6s) cubic-bezier(.6,0,.2,1) both}
+@keyframes draw{from{stroke-dashoffset:var(--L)}to{stroke-dashoffset:0}}
+
+
+
+
+/* ---------- variant ---------- */
+
+.mag{transform-box:fill-box;transform-origin:center;transform:scale(1);opacity:1}
+.mag{animation:mag .4s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes mag{0%{transform:scale(2.2);opacity:0}55%{transform:scale(.92);opacity:1}100%{transform:scale(1);opacity:1}}
+.write{clip-path:inset(0 0 0 0)}
+.write{animation:write .7s linear both}
+@keyframes write{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.cam{transform:scale(1.12) rotate(-1.5deg)}
+.cam{animation:camC 1.5s cubic-bezier(.3,0,.2,1) 4s both}
+@keyframes camC{from{transform:none}to{transform:scale(1.12) rotate(var(--tilt-board))}}
+.erase{clip-path:inset(0 0 0 100%)}
+.erase{animation:erase .7s linear 5.5s both}
+@keyframes erase{from{clip-path:inset(0 0 0 0)}to{clip-path:inset(0 0 0 100%)}}
+.eraser{opacity:0}
+.eraser{animation:eraser .7s linear 5.5s both}
+@keyframes eraser{0%{opacity:1;transform:translateX(calc(var(--travel) * -300px)) rotate(-8deg)}100%{opacity:1;transform:translateX(calc(var(--travel) * 2050px)) rotate(-8deg)}}
+.tape1{transform:rotate(-3deg)}
+.tape1{animation:tape1 .45s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes tape1{0%{transform:rotate(-7deg) scale(1.4);opacity:0}50%{opacity:1}100%{transform:rotate(var(--tilt-tape1)) scale(1);opacity:1}}
+.tape2{transform:rotate(2.5deg)}
+.tape2{animation:tape2 .45s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes tape2{0%{transform:rotate(7deg) scale(1.4);opacity:0}50%{opacity:1}100%{transform:rotate(var(--tilt-tape2)) scale(1);opacity:1}}
+/* ---------- fluid motion ---------- */
+.drift{transform:none}
+.drift{animation:drift 10.4s cubic-bezier(.25,.1,.25,1) both}
+@keyframes drift{0%{transform:scale(1.09) translate(-38px,18px) rotate(-1.2deg)}45%{transform:scale(1.04) translate(16px,-8px) rotate(.5deg)}100%{transform:none}}
+.shift{transform:translate(calc(var(--dx) * var(--travel)), calc(var(--dy) * var(--travel)))}
+.shift{animation:shift 1.35s cubic-bezier(.45,0,.2,1) 4.05s both}
+@keyframes shift{from{transform:translate(0,0)}to{transform:translate(calc(var(--dx) * var(--travel)), calc(var(--dy) * var(--travel)))}}
+.float{transform:none}
+.float{animation:float 1.6s ease-in-out infinite alternate}
+@keyframes float{from{transform:translateY(0) rotate(0)}to{transform:translateY(-7px) rotate(.7deg)}}
+.spin{transform:rotate(4deg)}
+.spin{animation:spin 4.6s linear 6s both}
+@keyframes spin{from{transform:rotate(-8deg)}to{transform:rotate(4deg)}}
+.pulse{transform:scale(1)}
+.pulse{animation:pulse .5s cubic-bezier(.2,.8,.3,1) 7s 6}
+@keyframes pulse{from{transform:scale(1.07)}to{transform:scale(1)}}
+.dust{opacity:0}
+.dust{animation:dust 5s linear infinite}
+@keyframes dust{0%{opacity:0;transform:translate(0,0)}20%{opacity:.55}100%{opacity:0;transform:translate(40px,-170px)}}
+.out{opacity:0;transform:translateY(-1500px)}
+.overlay.is-exiting .out{animation:outC 1.2s cubic-bezier(.5,0,.3,1) both}
+@keyframes outC{0%{opacity:0;transform:translateY(0) rotate(var(--r)) scale(1.3)}12%{opacity:1;transform:translateY(0) rotate(var(--r)) scale(1)}55%{opacity:1;transform:translateY(0) rotate(var(--r)) scale(1)}100%{opacity:1;transform:translateY(-1500px) rotate(var(--r)) scale(1)}}
+
+
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay style="position: relative; width: 1920px; height: 1080px; overflow: hidden">
+  
+  <div class="scene" id="scene" style="position: absolute; inset: 0; overflow: hidden; background: var(--ground)">
+<div class="drift" style="position: absolute; inset: 0; transform-origin: 50% 50%">
+<div class="dust" style="position: absolute; left: 1391px; top: 461px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 2.50s"></div><div class="dust" style="position: absolute; left: 1436px; top: 247px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 2.29s"></div><div class="dust" style="position: absolute; left: 649px; top: 576px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 4.99s"></div><div class="dust" style="position: absolute; left: 1800px; top: 245px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 3.54s"></div><div class="dust" style="position: absolute; left: 725px; top: 936px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 1.15s"></div><div class="dust" style="position: absolute; left: 671px; top: 190px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 0.35s"></div><div class="dust" style="position: absolute; left: 1649px; top: 270px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 2.00s"></div><div class="dust" style="position: absolute; left: 1813px; top: 457px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 1.93s"></div><div class="dust" style="position: absolute; left: 114px; top: 1027px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 3.42s"></div><div class="dust" style="position: absolute; left: 517px; top: 374px; width: 5px; height: 5px; border-radius: 50%; background: var(--secondary); animation-delay: 4.64s"></div><div class="dust" style="position: absolute; left: 187px; top: 641px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 1.88s"></div><div class="dust" style="position: absolute; left: 1531px; top: 566px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 2.10s"></div><div class="dust" style="position: absolute; left: 1239px; top: 804px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 0.99s"></div><div class="dust" style="position: absolute; left: 1462px; top: 436px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 1.68s"></div><div class="dust" style="position: absolute; left: 717px; top: 500px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 0.08s"></div><div class="dust" style="position: absolute; left: 919px; top: 936px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 4.61s"></div><div class="dust" style="position: absolute; left: 355px; top: 412px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 3.54s"></div><div class="dust" style="position: absolute; left: 102px; top: 221px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 2.32s"></div><div class="dust" style="position: absolute; left: 1077px; top: 341px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 3.41s"></div><div class="dust" style="position: absolute; left: 465px; top: 618px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 2.54s"></div><div class="dust" style="position: absolute; left: 1578px; top: 947px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 0.65s"></div><div class="dust" style="position: absolute; left: 1398px; top: 552px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 0.58s"></div><div class="dust" style="position: absolute; left: 941px; top: 377px; width: 3px; height: 3px; border-radius: 50%; background: var(--secondary); animation-delay: 0.00s"></div><div class="dust" style="position: absolute; left: 1725px; top: 766px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 1.52s"></div><div class="dust" style="position: absolute; left: 120px; top: 375px; width: 5px; height: 5px; border-radius: 50%; background: var(--secondary); animation-delay: 0.94s"></div><div class="dust" style="position: absolute; left: 1829px; top: 776px; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); animation-delay: 3.21s"></div><div class="dust" style="position: absolute; left: 285px; top: 203px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 4.95s"></div><div class="dust" style="position: absolute; left: 516px; top: 612px; width: 4px; height: 4px; border-radius: 50%; background: var(--secondary); animation-delay: 1.29s"></div>
+<div style="position: absolute; inset: 0; background: radial-gradient(ellipse 620px 300px at 22% 30%, rgba(255,255,255,.06), rgba(255,255,255,0)), radial-gradient(ellipse 760px 280px at 74% 72%, rgba(255,255,255,.05), rgba(255,255,255,0)), radial-gradient(ellipse 500px 200px at 60% 15%, rgba(255,255,255,.04), rgba(255,255,255,0))"></div>
+<div class="erase" style="position: absolute; inset: 0">
+  <div class="cam" style="position: absolute; inset: 0; transform-origin: 55% 50%">
+    <svg viewBox="-20 -20 1090 720" width="1500" height="991" aria-hidden="true" style="position: absolute; left: 260px; top: 50px; display: block; overflow: visible">
+      <g style="fill: none; stroke: var(--secondary); stroke-width: 3.5px; stroke-linecap: round; opacity: .8">
+<path class="pl" style="--L: 3500px; --dur: 0.5s; animation-delay: 0.05s" d="M0 0 H1050 V680 H0 Z"></path>
+<path class="pl" style="--L: 800px; --dur: 0.5s; animation-delay: 0.30s" d="M525 0 V680"></path>
+<circle class="pl" style="--L: 650px; --dur: 0.5s; animation-delay: 0.45s" cx="525" cy="340" r="91.5"></circle>
+<path class="pl" style="--L: 760px; --dur: 0.5s; animation-delay: 0.60s" d="M0 138.4 H165 V541.6 H0"></path>
+<path class="pl" style="--L: 760px; --dur: 0.5s; animation-delay: 0.60s" d="M1050 138.4 H885 V541.6 H1050"></path>
+<path class="pl" style="--L: 320px; --dur: 0.5s; animation-delay: 0.75s" d="M0 248.4 H55 V431.6 H0"></path>
+<path class="pl" style="--L: 320px; --dur: 0.5s; animation-delay: 0.75s" d="M1050 248.4 H995 V431.6 H1050"></path>
+<path class="pl" style="--L: 200px; --dur: 0.5s; animation-delay: 0.90s" d="M165 267 A91.5 91.5 0 0 1 165 413"></path>
+<path class="pl" style="--L: 200px; --dur: 0.5s; animation-delay: 0.90s" d="M885 267 A91.5 91.5 0 0 0 885 413"></path>
+      </g>
+<g class="shift" style="--dx: -35px; --dy: 12px"><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.30s" d="M542 232 L578 268"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.36s" d="M578 232 L542 268"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.40s" d="M542 412 L578 448"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.46s" d="M578 412 L542 448"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.50s" d="M772 212 L808 248"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.56s" d="M808 212 L772 248"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.60s" d="M782 432 L818 468"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.66s" d="M818 432 L782 468"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.70s" d="M862 322 L898 358"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; --L: 60px; --dur: .12s; animation-delay: 2.76s" d="M898 322 L862 358"></path></g>
+<path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 400px; --dur: .45s; animation-delay: 2.50s" d="M430 200 Q560 110 730 170"></path><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 80px; --dur: .15s; animation-delay: 2.92s" d="M701 175 L730 170 L710 148"></path><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 300px; --dur: .45s; animation-delay: 3.00s" d="M400 340 Q520 290 650 330"></path><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 80px; --dur: .15s; animation-delay: 3.42s" d="M621 336 L650 330 L629 309"></path><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 300px; --dur: .45s; animation-delay: 3.50s" d="M650 530 Q790 580 870 480"></path><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 80px; --dur: .15s; animation-delay: 3.92s" d="M865 509 L870 480 L843 492"></path><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 420px; --dur: .45s; animation-delay: 4.00s" d="M250 570 Q430 660 610 620"></path><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 5px; stroke-linecap: round; stroke-linejoin: round; --L: 80px; --dur: .15s; animation-delay: 4.42s" d="M588 639 L610 620 L582 612"></path>
+<g class="shift" style="--dx: 20px; --dy: 0px"><g class="mag" style="animation-delay: 1.50s"><circle cx="64" cy="347" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="60" cy="340" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="53" cy="332" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 40px; --dy: 10px"><g class="mag" style="animation-delay: 1.56s"><circle cx="254" cy="117" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="250" cy="110" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="243" cy="102" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 40px; --dy: 0px"><g class="mag" style="animation-delay: 1.62s"><circle cx="234" cy="267" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="230" cy="260" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="223" cy="252" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 40px; --dy: 0px"><g class="mag" style="animation-delay: 1.68s"><circle cx="234" cy="427" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="230" cy="420" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="223" cy="412" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 335px; --dy: 45px"><g class="mag" style="animation-delay: 1.74s"><circle cx="254" cy="577" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="250" cy="570" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="243" cy="562" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 270px; --dy: -25px"><g class="mag" style="animation-delay: 1.80s"><circle cx="434" cy="207" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="430" cy="200" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="423" cy="192" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 220px; --dy: -8px"><g class="mag" style="animation-delay: 1.86s"><circle cx="404" cy="347" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="400" cy="340" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="393" cy="332" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 60px; --dy: 10px"><g class="mag" style="animation-delay: 1.92s"><circle cx="434" cy="487" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="430" cy="480" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="423" cy="472" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 160px; --dy: 5px"><g class="mag" style="animation-delay: 1.98s"><circle cx="654" cy="157" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="650" cy="150" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="643" cy="142" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 40px; --dy: 0px"><g class="mag" style="animation-delay: 2.04s"><circle cx="704" cy="347" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="700" cy="340" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="693" cy="332" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g><g class="shift" style="--dx: 195px; --dy: -42px"><g class="mag" style="animation-delay: 2.10s"><circle cx="654" cy="537" r="24" style="fill: rgba(0,0,0,.35)"></circle><circle cx="650" cy="530" r="24" style="fill: var(--primary); stroke: rgba(0,0,0,.3); stroke-width: 3px"></circle><circle cx="643" cy="522" r="7" style="fill: rgba(255,255,255,.45)"></circle></g></g>
+    </svg>
+    <div class="write" style="position: absolute; left: 70px; top: 50px; font-family: 'Permanent Marker', cursive; font-size: 120px; line-height: 1.1; color: var(--secondary); animation-delay: 2.2s" id="team-news">TEAM NEWS</div>
+    <div class="write" style="position: absolute; left: 96px; top: 200px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 64px; line-height: 1.2; color: var(--secondary); animation-delay: 3.2s" id="starting-xi">Starting XI</div>
+    <svg viewBox="0 0 500 140" width="500" height="140" aria-hidden="true" style="position: absolute; left: 50px; top: 178px; overflow: visible">
+      <path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 6px; stroke-linecap: round; --L: 1100px; --dur: .5s; animation-delay: 3.75s" d="M24 74 C 20 18, 470 8, 474 62 C 478 118, 40 128, 30 64"></path>
+    </svg>
+  </div>
+</div>
+<div class="eraser" style="position: absolute; left: 0; top: 440px; width: 260px; height: 130px; border-radius: 14px; background: linear-gradient(180deg, #CFC7B8 0px, #B9B0A0 78px, #4A3B2A 78px, #3A2E21 130px); box-shadow: 0 14px 24px rgba(0,0,0,.45)"></div>
+<div class="spin" style="position: absolute; inset: 0; transform-origin: 960px 480px"><div class="pulse" style="position: absolute; inset: 0; transform-origin: 960px 480px">
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.00s" d="M1721 617 L1806 634"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.09s" d="M1533 763 L1596 798"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.19s" d="M387 763 L324 798"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.29s" d="M199 617 L114 634"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.38s" d="M199 343 L114 326"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.47s" d="M387 197 L324 162"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.57s" d="M960 80 L960 30"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.67s" d="M1533 197 L1596 162"></path></svg>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible"><path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 7px; stroke-linecap: round; opacity: .85; --L: 120px; --dur: .18s; animation-delay: 6.76s" d="M1721 343 L1806 326"></path></svg>
+</div></div>
+<div class="tape1" style="position: absolute; left: 230px; top: 250px; width: 1460px; height: 250px; filter: drop-shadow(0 12px 14px rgba(0,0,0,.45)); animation-delay: 7.0s"><div class="float" style="animation-delay: 7.5s; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%, rgba(0,0,0,.1)), var(--primary); clip-path: polygon(0 0, 100% 0, 98.6% 12.5%, 100% 25%, 98.6% 37.5%, 100% 50%, 98.6% 62.5%, 100% 75%, 98.6% 87.5%, 100% 100%, 0 100%, 1.4% 87.5%, 0 75%, 1.4% 62.5%, 0 50%, 1.4% 37.5%, 0 25%, 1.4% 12.5%); display: flex; align-items: center; justify-content: center; font-family: 'Permanent Marker', cursive; font-size: 200px; line-height: 1; color: #151515" id="matchday">MATCHDAY</div></div>
+<div class="tape2" style="position: absolute; left: 600px; top: 520px; width: 760px; height: 200px; filter: drop-shadow(0 12px 14px rgba(0,0,0,.45)); animation-delay: 7.3s"><div class="float" style="animation-delay: 7.85s; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%, rgba(0,0,0,.1)), var(--accent); clip-path: polygon(0 0, 100% 0, 98.6% 12.5%, 100% 25%, 98.6% 37.5%, 100% 50%, 98.6% 62.5%, 100% 75%, 98.6% 87.5%, 100% 100%, 0 100%, 1.4% 87.5%, 0 75%, 1.4% 62.5%, 0 50%, 1.4% 37.5%, 0 25%, 1.4% 12.5%); display: flex; align-items: center; justify-content: center; font-family: 'Permanent Marker', cursive; font-size: 150px; line-height: 1; letter-spacing: .06em; color: var(--secondary)" id="focus">FOCUS</div></div>
+<svg viewBox="0 0 1920 1080" width="1920" height="1080" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible">
+  <path class="pl" style="fill: none; stroke: var(--secondary); stroke-width: 8px; stroke-linecap: round; --L: 900px; --dur: .5s; animation-delay: 7.7s" d="M560 790 Q960 850 1400 770"></path>
+  <path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; stroke-linejoin: round; --L: 500px; --dur: .45s; animation-delay: 8.80s" d="M1660 940 Q1640 800 1420 720"></path><path class="pl" style="fill: none; stroke: var(--accent); stroke-width: 7px; stroke-linecap: round; stroke-linejoin: round; --L: 80px; --dur: .15s; animation-delay: 9.22s" d="M1449 716 L1420 720 L1440 742"></path>
+</svg>
+<div style="position: absolute; left: 0; top: 862px; width: 1920px; text-align: center"><span class="write" style="display: inline-block; font-family: 'Kalam', cursive; font-weight: 700; font-size: 52px; color: var(--secondary); animation-delay: 8.2s" id="footer">Match preview · Team news</span></div>
+</div>
+<div style="position: absolute; inset: 0; border: 26px solid #2B2E33; box-shadow: inset 0 0 40px rgba(0,0,0,.6); pointer-events: none"></div>
+  </div>
+  
+<div class="out" style="position: absolute; left: -190px; top: -40px; width: 2300px; height: 290px; --r: -2deg; animation-delay:0s"><div style="width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%, rgba(0,0,0,.1)), var(--primary); clip-path: polygon(0 0, 100% 0, 98.6% 12.5%, 100% 25%, 98.6% 37.5%, 100% 50%, 98.6% 62.5%, 100% 75%, 98.6% 87.5%, 100% 100%, 0 100%, 1.4% 87.5%, 0 75%, 1.4% 62.5%, 0 50%, 1.4% 37.5%, 0 25%, 1.4% 12.5%)"></div></div>
+<div class="out" style="position: absolute; left: -190px; top: 180px; width: 2300px; height: 290px; --r: 1.5deg; animation-delay:.06s"><div style="width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%, rgba(0,0,0,.1)), var(--accent); clip-path: polygon(0 0, 100% 0, 98.6% 12.5%, 100% 25%, 98.6% 37.5%, 100% 50%, 98.6% 62.5%, 100% 75%, 98.6% 87.5%, 100% 100%, 0 100%, 1.4% 87.5%, 0 75%, 1.4% 62.5%, 0 50%, 1.4% 37.5%, 0 25%, 1.4% 12.5%)"></div></div>
+<div class="out" style="position: absolute; left: -190px; top: 400px; width: 2300px; height: 290px; --r: -1deg; animation-delay:.12s"><div style="width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%, rgba(0,0,0,.1)), var(--secondary); clip-path: polygon(0 0, 100% 0, 98.6% 12.5%, 100% 25%, 98.6% 37.5%, 100% 50%, 98.6% 62.5%, 100% 75%, 98.6% 87.5%, 100% 100%, 0 100%, 1.4% 87.5%, 0 75%, 1.4% 62.5%, 0 50%, 1.4% 37.5%, 0 25%, 1.4% 12.5%)"></div></div>
+<div class="out" style="position: absolute; left: -190px; top: 620px; width: 2300px; height: 290px; --r: 2deg; animation-delay:.18s"><div style="width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%, rgba(0,0,0,.1)), var(--primary); clip-path: polygon(0 0, 100% 0, 98.6% 12.5%, 100% 25%, 98.6% 37.5%, 100% 50%, 98.6% 62.5%, 100% 75%, 98.6% 87.5%, 100% 100%, 0 100%, 1.4% 87.5%, 0 75%, 1.4% 62.5%, 0 50%, 1.4% 37.5%, 0 25%, 1.4% 12.5%)"></div></div>
+<div class="out" style="position: absolute; left: -190px; top: 840px; width: 2300px; height: 290px; --r: -1.5deg; animation-delay:.24s"><div style="width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%, rgba(0,0,0,.1)), var(--accent); clip-path: polygon(0 0, 100% 0, 98.6% 12.5%, 100% 25%, 98.6% 37.5%, 100% 50%, 98.6% 62.5%, 100% 75%, 98.6% 87.5%, 100% 100%, 0 100%, 1.4% 87.5%, 0 75%, 1.4% 62.5%, 0 50%, 1.4% 37.5%, 0 25%, 1.4% 12.5%)"></div></div>
+</div>
+
+  
+  <script>
+  'use strict';
+  var CARD_READY = 8.9;
+  var STING_DUR = 1.44;
+  var COVER_AT = 0.2;
+  var GRAPHIC = {
+    text: { teamNews: 'TEAM NEWS', startingXi: 'Starting XI', matchday: 'MATCHDAY', focus: 'FOCUS', footer: 'Match preview · Team news' },
+    colors: { primary: '#F5D547', secondary: '#F3F1E8', accent: '#E4572E', background: '#123829' },
+    animation: { hold: 10, speed: 1, travel: 1, boardTilt: -1.5, tapeMatchday: -3, tapeFocus: 2.5 }
+  };
+  function num(value, fallback) { var n = Number(value); return isFinite(n) ? n : fallback; }
+  function speedOf(animation) { var speed = num(animation && animation.speed, 1); return speed > 0 ? speed : 1; }
+  function stingStart(animation) { return Math.max(num(animation && animation.hold, 10), CARD_READY / speedOf(animation)); }
+  function endMs(timing) {
+    if (!timing) return 0;
+    var delay = timing.delay || 0;
+    var duration = timing.duration;
+    if (typeof duration !== 'number' || !isFinite(duration)) duration = 0;
+    if (duration > 0 && duration < 20) duration *= 1000;
+    if (delay > 0 && delay < 20) delay *= 1000;
+    return delay + duration;
+  }
+  function setText(id, value) { var el = document.getElementById(id); if (el) el.textContent = value == null ? '' : String(value); }
+  function applyGraphic(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var text = config.text || {};
+    var colors = config.colors || {};
+    var overlay = document.querySelector('.overlay');
+    if (overlay) {
+      overlay.style.setProperty('--primary', colors.primary || GRAPHIC.colors.primary);
+      overlay.style.setProperty('--secondary', colors.secondary || GRAPHIC.colors.secondary);
+      overlay.style.setProperty('--accent', colors.accent || GRAPHIC.colors.accent);
+      overlay.style.setProperty('--ground', colors.background || GRAPHIC.colors.background);
+    }
+    setText('team-news', text.teamNews != null ? text.teamNews : GRAPHIC.text.teamNews);
+    setText('starting-xi', text.startingXi != null ? text.startingXi : GRAPHIC.text.startingXi);
+    setText('matchday', text.matchday != null ? text.matchday : GRAPHIC.text.matchday);
+    setText('focus', text.focus != null ? text.focus : GRAPHIC.text.focus);
+    setText('footer', text.footer != null ? text.footer : GRAPHIC.text.footer);
+  }
+  function applyAnimationTiming(overlay, timing) {
+    if (!overlay) return;
+    timing = timing || {};
+    var travel = num(timing.travel, 1);
+    if (!(travel > 0)) travel = 1;
+    overlay.style.setProperty('--travel', String(travel));
+    overlay.style.setProperty('--tilt-board', num(timing.boardTilt, -1.5) + 'deg');
+    overlay.style.setProperty('--tilt-tape1', num(timing.tapeMatchday, -3) + 'deg');
+    overlay.style.setProperty('--tilt-tape2', num(timing.tapeFocus, 2.5) + 'deg');
+  }
+  function seekNode(el, ms) {
+    if (!el.getAnimations) return;
+    el.getAnimations().forEach(function (anim) {
+      anim.pause();
+      var timing = anim.effect && anim.effect.getTiming ? anim.effect.getTiming() : null;
+      var end = endMs(timing);
+      var next = end > 0 && isFinite(end) ? Math.min(Math.max(ms, 0), end) : Math.max(ms, 0);
+      try { anim.currentTime = next; } catch (err) {}
+    });
+  }
+  function clearBake(root) {
+    var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('[data-bake]')));
+    nodes.forEach(function (el) {
+      ['opacity','visibility','transform','filter','clipPath','webkitClipPath','letterSpacing','strokeDashoffset','animation'].forEach(function (prop) { el.style[prop] = ''; });
+      el.removeAttribute('data-bake');
+    });
+  }
+  function bake(root) {
+    [root].concat(Array.prototype.slice.call(root.querySelectorAll('*'))).map(function (el) {
+      return { el: el, cs: getComputedStyle(el) };
+    }).forEach(function (item) {
+      var el = item.el, cs = item.cs;
+      el.style.opacity = cs.opacity;
+      el.style.visibility = cs.visibility;
+      if (cs.transform && cs.transform !== 'none') el.style.transform = cs.transform;
+      if (cs.filter && cs.filter !== 'none') el.style.filter = cs.filter;
+      if (cs.clipPath && cs.clipPath !== 'none') el.style.clipPath = cs.clipPath;
+      if (cs.webkitClipPath && cs.webkitClipPath !== 'none') el.style.webkitClipPath = cs.webkitClipPath;
+      if (cs.letterSpacing) el.style.letterSpacing = cs.letterSpacing;
+      if (cs.strokeDashoffset) el.style.strokeDashoffset = cs.strokeDashoffset;
+      if (cs.animationName && cs.animationName !== 'none') el.style.animation = 'none';
+      el.setAttribute('data-bake', '1');
+    });
+  }
+  function prepareFrame(timeSec, config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var scene = document.getElementById('scene');
+    if (!overlay || !scene) return;
+    applyGraphic(config);
+    applyAnimationTiming(overlay, config.animation || {});
+    var speed = speedOf(config.animation);
+    var start = stingStart(config.animation);
+    var exiting = timeSec >= start;
+    overlay.classList.remove('is-ready');
+    overlay.classList.toggle('is-exiting', exiting);
+    void overlay.offsetHeight;
+    var introMs = (exiting ? start : timeSec) * speed * 1000;
+    var stingMs = exiting ? (timeSec - start) * speed * 1000 : 0;
+    document.getAnimations().forEach(function (anim) {
+      var target = anim.effect && anim.effect.target;
+      if (!target || !overlay.contains(target)) return;
+      var sting = target.classList && target.classList.contains('out');
+      if (sting && !exiting) return;
+      anim.pause();
+      var timing = anim.effect && anim.effect.getTiming ? anim.effect.getTiming() : null;
+      var end = endMs(timing);
+      var ms = sting ? stingMs : introMs;
+      var next = end > 0 && isFinite(end) ? Math.min(Math.max(ms, 0), end) : Math.max(ms, 0);
+      try { anim.currentTime = next; } catch (err) { /* ignore */ }
+    });
+    scene.style.opacity = exiting && ((timeSec - start) * speed) >= (COVER_AT * 1.2) ? '0' : '1';
+  }
+  function getOverlayRenderDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var speed = speedOf(config.animation);
+    return stingStart(config.animation) + (STING_DUR / speed) + 0.5;
+  }
+  var previewCoverTimer = null;
+  function scheduleExit(config) {
+    var overlay = document.querySelector('.overlay');
+    var holdSec = (config && config.animation && config.animation.hold != null)
+      ? Number(config.animation.hold) : GRAPHIC.animation.hold;
+    setTimeout(function () {
+      if (overlay) overlay.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var scene = document.getElementById('scene');
+    applyAnimationTiming(overlay, config.animation);
+    if (scene) scene.style.opacity = '';
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+    if (previewCoverTimer) clearTimeout(previewCoverTimer);
+    var holdSec = (config.animation && config.animation.hold != null)
+      ? Number(config.animation.hold) : GRAPHIC.animation.hold;
+    previewCoverTimer = setTimeout(function () {
+      previewCoverTimer = null;
+      if (scene && overlay && overlay.classList.contains('is-exiting')) scene.style.opacity = '0';
+    }, (holdSec + COVER_AT * 1.2) * 1000);
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    applyAnimationTiming(document.querySelector('.overlay'), (config && config.animation) || {});
+    if (window.__RENDER_WAIT_FOR_GO__) window.__RENDER_ARMED__ = true;
+  }
+  window.prepareFrame = prepareFrame;
+  window.getOverlayRenderDuration = getOverlayRenderDuration;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Matchday Focus intro</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;0,900;1,700;1,900&amp;display=swap">
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+    }
+    .overlay {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0.996;
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      --primary: #C8102E;
+      --secondary: #FFFFFF;
+      --accent: #F2B705;
+      --ground: #0A0E17;
+      --travel: 1;
+      --tilt-title: -4deg;
+    }
+    .overlay * { box-sizing: border-box; animation-play-state: paused; }
+    .overlay.is-ready * { animation-play-state: running; }
+    .scene { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .slit { animation: slit .9s cubic-bezier(.7,0,.2,1) both; }
+    .speed { animation: speed .75s cubic-bezier(.6,0,.3,1) both; }
+    .wipe { animation: wipe 1.25s cubic-bezier(.75,0,.25,1) both; }
+    .drift { animation: drift 10s linear both; }
+    .cam { animation: cam 10s cubic-bezier(.3,.2,.35,1) both; }
+    .pl { stroke-dasharray: var(--L); animation: draw 1.7s cubic-bezier(.6,0,.2,1) both; }
+    .L3500 { --L: 3500px; } .L800 { --L: 800px; } .L650 { --L: 650px; } .L760 { --L: 760px; }
+    .L320 { --L: 320px; } .L200 { --L: 200px; } .L520 { --L: 520px; } .L840 { --L: 840px; }
+    .dot { transform-box: fill-box; transform-origin: center; animation: dotIn .55s cubic-bezier(.2,1.6,.4,1) both; }
+    .clock { animation: clock 3.3s cubic-bezier(.3,.8,.3,1) 2.4s both; }
+    .label { animation: label 2.9s cubic-bezier(.3,.8,.3,1) 2.8s both; }
+    .rig { transform-origin: 50% 55%; animation: push 3.4s cubic-bezier(.15,.8,.25,1) 6.6s both; }
+    .band { animation: bandIn .7s cubic-bezier(.2,.9,.1,1) 6.55s both; }
+    .underbar { animation: barL .7s cubic-bezier(.2,.9,.1,1) 6.75s both; }
+    .overbar { animation: barR .7s cubic-bezier(.2,.9,.1,1) 6.85s both; }
+    .ltr { display: inline-block; animation: slam .6s cubic-bezier(.2,1.35,.35,1) both; }
+    .reveal { animation: reveal .65s cubic-bezier(.7,0,.2,1) 7.8s both; }
+    .glint { animation: glint 1s cubic-bezier(.5,0,.3,1) 8.55s both; }
+    .tag { animation: tag .9s cubic-bezier(.2,.8,.2,1) 8.5s both; }
+    .corner { animation: corner .5s cubic-bezier(.2,1.4,.4,1) 8.9s both; }
+    .outbar { transform: translateX(3600px) skewX(-18deg); }
+    .overlay.is-exiting .outbar { animation: outbar 1.3s cubic-bezier(.75,0,.25,1) both; }
+    @keyframes outbar { from { transform: translateX(-3600px) skewX(-18deg); } to { transform: translateX(3600px) skewX(-18deg); } }
+    @keyframes slit { 0% { transform: scaleX(0); opacity: 1; } 45% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+    @keyframes speed { from { transform: translateX(calc(var(--travel) * -900px)); } to { transform: translateX(calc(var(--travel) * 2700px)); } }
+    @keyframes wipe { from { transform: translateX(calc(var(--travel) * -2600px)) skewX(-18deg); } to { transform: translateX(calc(var(--travel) * 2600px)) skewX(-18deg); } }
+    @keyframes drift { from { transform: translateX(-360px); } to { transform: translateX(0); } }
+    @keyframes cam { 0% { transform: translateY(120px) rotateX(81deg) scale(1.9); opacity: 0; } 5% { opacity: .95; } 70% { opacity: .95; } 80% { opacity: .32; } 100% { transform: translateY(-30px) rotateX(48deg) scale(1); opacity: .32; } }
+    @keyframes draw { from { stroke-dashoffset: var(--L); } to { stroke-dashoffset: 0; } }
+    @keyframes dotIn { from { transform: scale(0); } to { transform: scale(1); } }
+    @keyframes clock { 0% { transform: scale(0) rotate(-120deg); opacity: 0; } 14% { transform: scale(1.06) rotate(0); opacity: 1; } 20% { transform: scale(1); } 86% { transform: scale(1); opacity: 1; } 100% { transform: scale(.7); opacity: 0; } }
+    @keyframes label { 0% { transform: translateX(-90px); opacity: 0; } 15% { transform: translateX(0); opacity: 1; } 84% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(60px); opacity: 0; } }
+    @keyframes push { from { transform: rotate(var(--tilt-title)) scale(1.1); } to { transform: rotate(var(--tilt-title)) scale(1); } }
+    @keyframes bandIn { from { transform: translateX(115%); } to { transform: translateX(0); } }
+    @keyframes barL { from { transform: translateX(-115%); } to { transform: translateX(0); } }
+    @keyframes barR { from { transform: translateX(115%); } to { transform: translateX(0); } }
+    @keyframes slam { 0% { transform: translateY(-170px) skewX(-14deg) scale(1.5); opacity: 0; } 40% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+    @keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes glint { from { transform: translateX(calc(var(--travel) * -700px)) skewX(-20deg); } to { transform: translateX(calc(var(--travel) * 2600px)) skewX(-20deg); } }
+    @keyframes tag { from { opacity: 0; letter-spacing: .9em; } to { opacity: 1; letter-spacing: .32em; } }
+    @keyframes corner { from { opacity: 0; transform: scale(1.6); } to { opacity: 1; transform: scale(1); } }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <div class="scene" id="scene">
+      <div class="drift" style="position:absolute;left:-400px;top:0;width:2800px;height:1080px;opacity:.09;background:repeating-linear-gradient(120deg,var(--primary) 0px,var(--primary) 46px,transparent 46px,transparent 150px)"></div>
+      <div style="position:absolute;inset:0;perspective:1400px;perspective-origin:50% 30%">
+        <div class="cam" style="position:absolute;left:210px;top:150px;width:1500px;height:991px;transform-origin:50% 55%">
+          <svg viewBox="-20 -20 1090 720" width="1500" height="991" aria-hidden="true" style="display:block;overflow:visible">
+            <g style="fill:none;stroke:var(--secondary);stroke-width:4px;stroke-linecap:square">
+              <path class="pl L3500" style="animation-delay:.15s" d="M0 0 H1050 V680 H0 Z"></path>
+              <path class="pl L800" style="animation-delay:.45s" d="M525 0 V680"></path>
+              <circle class="pl L650" style="animation-delay:.65s" cx="525" cy="340" r="91.5"></circle>
+              <path class="pl L760" style="animation-delay:.85s" d="M0 138.4 H165 V541.6 H0"></path>
+              <path class="pl L760" style="animation-delay:.85s" d="M1050 138.4 H885 V541.6 H1050"></path>
+              <path class="pl L320" style="animation-delay:1.05s" d="M0 248.4 H55 V431.6 H0"></path>
+              <path class="pl L320" style="animation-delay:1.05s" d="M1050 248.4 H995 V431.6 H1050"></path>
+              <path class="pl L200" style="animation-delay:1.25s" d="M165 267 A91.5 91.5 0 0 1 165 413"></path>
+              <path class="pl L200" style="animation-delay:1.25s" d="M885 267 A91.5 91.5 0 0 0 885 413"></path>
+            </g>
+            <circle cx="525" cy="340" r="6" style="fill:var(--secondary)"></circle>
+            <g style="fill:none;stroke:var(--secondary);stroke-width:3px;opacity:.55">
+              <path class="pl L520" style="animation-delay:4.7s" d="M270 110 L250 260 L250 420 L270 570"></path>
+              <path class="pl L520" style="animation-delay:4.85s" d="M440 190 L410 340 L440 490"></path>
+              <path class="pl L520" style="animation-delay:5.0s" d="M650 150 L690 340 L650 530"></path>
+            </g>
+            <g style="fill:var(--primary);stroke:var(--secondary);stroke-width:5px">
+              <circle class="dot" style="animation-delay:3.8s" cx="90" cy="340" r="18"></circle>
+              <circle class="dot" style="animation-delay:3.9s" cx="270" cy="110" r="18"></circle>
+              <circle class="dot" style="animation-delay:3.98s" cx="250" cy="260" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.06s" cx="250" cy="420" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.14s" cx="270" cy="570" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.26s" cx="440" cy="190" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.34s" cx="410" cy="340" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.42s" cx="440" cy="490" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.54s" cx="650" cy="150" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.62s" cx="690" cy="340" r="18"></circle>
+              <circle class="dot" style="animation-delay:4.7s" cx="650" cy="530" r="18"></circle>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%)"></div>
+      <div class="slit" style="position:absolute;left:0;top:538px;width:1920px;height:4px;transform-origin:50% 50%;background:var(--secondary)"></div>
+      <div class="speed" data-travel style="position:absolute;left:0;top:230px;width:700px;height:6px;background:var(--primary);animation-delay:.25s"></div>
+      <div class="speed" data-travel style="position:absolute;left:0;top:330px;width:420px;height:3px;background:var(--secondary);animation-delay:.4s"></div>
+      <div class="speed" data-travel style="position:absolute;left:0;top:760px;width:820px;height:8px;background:var(--primary);animation-delay:.5s"></div>
+      <div class="speed" data-travel style="position:absolute;left:0;top:860px;width:360px;height:3px;background:var(--secondary);animation-delay:.62s"></div>
+      <div class="speed" data-travel style="position:absolute;left:0;top:140px;width:300px;height:3px;background:var(--secondary);animation-delay:.75s"></div>
+      <div class="wipe" data-travel style="position:absolute;left:600px;top:-300px;width:760px;height:1700px;background:var(--primary);animation-delay:1.35s"></div>
+      <div class="wipe" data-travel style="position:absolute;left:600px;top:-300px;width:150px;height:1700px;background:var(--secondary);animation-delay:1.45s"></div>
+      <div class="wipe" data-travel style="position:absolute;left:600px;top:-300px;width:420px;height:1700px;background:var(--accent);animation-delay:1.53s"></div>
+      <div class="clock" style="position:absolute;left:140px;top:640px;width:300px;height:300px">
+        <svg viewBox="0 0 300 300" width="300" height="300" aria-hidden="true" style="position:absolute;inset:0">
+          <circle cx="150" cy="150" r="130" style="fill:rgba(0,0,0,.35);stroke:var(--secondary);stroke-width:8px;opacity:.3"></circle>
+          <circle class="pl L840" cx="150" cy="150" r="130" style="fill:none;stroke:var(--primary);stroke-width:14px;transform:rotate(-90deg);transform-origin:150px 150px;animation-delay:2.7s"></circle>
+          <g style="stroke:var(--secondary);stroke-width:4px">
+            <line x1="150" y1="34" x2="150" y2="52"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(30 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(60 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(90 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(120 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(150 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(180 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(210 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(240 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(270 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(300 150 150)"></line>
+            <line x1="150" y1="34" x2="150" y2="52" transform="rotate(330 150 150)"></line>
+          </g>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--secondary)">
+          <div id="xi" style="font-size:140px;font-weight:900;font-style:italic;line-height:.85">XI</div>
+          <div id="starting" style="font-size:26px;font-weight:700;letter-spacing:.3em;margin-left:.3em">STARTING</div>
+        </div>
+      </div>
+      <div class="label" style="position:absolute;left:480px;top:690px;display:flex;flex-direction:column;align-items:flex-start;gap:14px">
+        <div id="team-news" style="font-size:110px;font-weight:900;font-style:italic;line-height:.9;color:var(--secondary)">TEAM NEWS</div>
+        <div id="match-preview" style="font-size:38px;font-weight:700;letter-spacing:.22em;padding:8px 22px;color:var(--secondary);background:var(--primary)">MATCH PREVIEW</div>
+      </div>
+      <div class="rig" style="position:absolute;inset:0">
+        <div class="overbar" style="position:absolute;left:-200px;top:536px;width:2320px;height:14px;background:var(--accent)"></div>
+        <div class="band" style="position:absolute;left:-200px;top:556px;width:2320px;height:236px;background:var(--primary)"></div>
+        <div class="underbar" style="position:absolute;left:-200px;top:798px;width:2320px;height:16px;background:var(--secondary)"></div>
+        <h1 id="matchday" style="position:absolute;left:0;top:268px;width:1920px;margin:0;text-align:center;font-size:300px;font-weight:900;font-style:italic;line-height:1;letter-spacing:.01em;color:var(--secondary)"></h1>
+        <div class="reveal" style="position:absolute;left:0;top:556px;width:1920px;height:236px;display:flex;align-items:center;justify-content:center">
+          <div id="focus" style="font-size:200px;font-weight:700;font-style:italic;line-height:1;letter-spacing:.26em;margin-left:.26em;color:var(--secondary)">FOCUS</div>
+        </div>
+        <div class="glint" data-travel style="position:absolute;left:0;top:220px;width:220px;height:640px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.4),rgba(255,255,255,0))"></div>
+        <div id="footer" class="tag" style="position:absolute;left:0;top:846px;width:1920px;text-align:center;font-size:40px;font-weight:500;color:var(--secondary)">MATCH PREVIEW · TEAM NEWS</div>
+      </div>
+      <div class="corner" style="position:absolute;left:64px;top:56px;width:70px;height:70px;border-left:8px solid var(--primary);border-top:8px solid var(--primary);transform-origin:0 0"></div>
+      <div class="corner" style="position:absolute;right:64px;top:56px;width:70px;height:70px;border-right:8px solid var(--primary);border-top:8px solid var(--primary);transform-origin:100% 0"></div>
+      <div class="corner" style="position:absolute;left:64px;bottom:56px;width:70px;height:70px;border-left:8px solid var(--primary);border-bottom:8px solid var(--primary);transform-origin:0 100%"></div>
+      <div class="corner" style="position:absolute;right:64px;bottom:56px;width:70px;height:70px;border-right:8px solid var(--primary);border-bottom:8px solid var(--primary);transform-origin:100% 100%"></div>
+    </div>
+    <div class="outbar" style="position:absolute;left:-740px;top:-310px;width:3400px;height:1700px;background:var(--primary);animation-delay:.10s"></div>
+    <div class="outbar" style="position:absolute;left:-740px;top:-310px;width:200px;height:1700px;background:var(--secondary);animation-delay:.05s"></div>
+    <div class="outbar" style="position:absolute;left:-740px;top:-310px;width:420px;height:1700px;background:var(--accent);animation-delay:0s"></div>
+    <div class="outbar" style="position:absolute;left:-740px;top:-310px;width:160px;height:1700px;background:var(--secondary);animation-delay:.19s"></div>
+  </div>
+  <script>
+  'use strict';
+
+  var CARD_READY = 9.4;
+  var STING_DUR = 1.49;
+  var COVER_AT = 0.55;
+  var builtWord = null;
+
+  var GRAPHIC = {
+    text: {
+      matchday: 'MATCHDAY',
+      focus: 'FOCUS',
+      xi: 'XI',
+      starting: 'STARTING',
+      teamNews: 'TEAM NEWS',
+      matchPreview: 'MATCH PREVIEW',
+      footer: 'MATCH PREVIEW · TEAM NEWS'
+    },
+    colors: {
+      primary: '#C8102E',
+      secondary: '#FFFFFF',
+      accent: '#F2B705',
+      background: '#0A0E17'
+    },
+    animation: {
+      hold: 9.95,
+      speed: 1,
+      travel: 1,
+      titleTilt: -4
+    }
+  };
+
+  function num(value, fallback) {
+    var n = Number(value);
+    return isFinite(n) ? n : fallback;
+  }
+
+  function speedOf(animation) {
+    var speed = num(animation && animation.speed, 1);
+    return speed > 0 ? speed : 1;
+  }
+
+  function holdOf(animation) {
+    return num(animation && animation.hold, 9.95);
+  }
+
+  function stingStart(animation) {
+    return Math.max(holdOf(animation), CARD_READY / speedOf(animation));
+  }
+
+  function endMs(timing) {
+    if (!timing) return 0;
+    var delay = timing.delay || 0;
+    var duration = timing.duration;
+    if (typeof duration !== 'number' || !isFinite(duration)) duration = 0;
+    if (duration > 0 && duration < 20) duration *= 1000;
+    if (delay > 0 && delay < 20) delay *= 1000;
+    return delay + duration;
+  }
+
+  function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value == null ? '' : String(value);
+  }
+
+  function setMatchday(word) {
+    word = word == null ? '' : String(word);
+    if (word === builtWord) return;
+    builtWord = word;
+    var h1 = document.getElementById('matchday');
+    if (!h1) return;
+    h1.textContent = '';
+    for (var i = 0; i < word.length; i++) {
+      var span = document.createElement('span');
+      span.className = 'ltr';
+      span.style.animationDelay = (7 + i * 0.06) + 's';
+      span.textContent = word.charAt(i);
+      h1.appendChild(span);
+    }
+  }
+
+  function applyGraphic(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var text = config.text || {};
+    var colors = config.colors || {};
+    var overlay = document.querySelector('.overlay');
+    if (overlay) {
+      overlay.style.setProperty('--primary', colors.primary || GRAPHIC.colors.primary);
+      overlay.style.setProperty('--secondary', colors.secondary || GRAPHIC.colors.secondary);
+      overlay.style.setProperty('--accent', colors.accent || GRAPHIC.colors.accent);
+      overlay.style.setProperty('--ground', colors.background || GRAPHIC.colors.background);
+    }
+    setMatchday(text.matchday != null ? text.matchday : GRAPHIC.text.matchday);
+    setText('focus', text.focus != null ? text.focus : GRAPHIC.text.focus);
+    setText('xi', text.xi != null ? text.xi : GRAPHIC.text.xi);
+    setText('starting', text.starting != null ? text.starting : GRAPHIC.text.starting);
+    setText('team-news', text.teamNews != null ? text.teamNews : GRAPHIC.text.teamNews);
+    setText('match-preview', text.matchPreview != null ? text.matchPreview : GRAPHIC.text.matchPreview);
+    setText('footer', text.footer != null ? text.footer : GRAPHIC.text.footer);
+  }
+
+  function applyAnimationTiming(overlay, timing) {
+    if (!overlay) return;
+    timing = timing || {};
+    var travel = num(timing.travel, 1);
+    if (!(travel > 0)) travel = 1;
+    var tilt = num(timing.titleTilt, -4);
+    overlay.style.setProperty('--travel', String(travel));
+    overlay.style.setProperty('--tilt-title', tilt + 'deg');
+  }
+
+  function seekNode(el, ms) {
+    if (!el.getAnimations) return;
+    el.getAnimations().forEach(function (anim) {
+      anim.pause();
+      var timing = anim.effect && anim.effect.getTiming ? anim.effect.getTiming() : null;
+      var end = endMs(timing);
+      var next = ms;
+      if (end > 0 && isFinite(end)) next = Math.min(Math.max(ms, 0), end);
+      else next = Math.max(ms, 0);
+      try { anim.currentTime = next; } catch (err) { /* ignore */ }
+    });
+  }
+
+  function clearBake(root) {
+    var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('[data-bake]')));
+    nodes.forEach(function (el) {
+      ['opacity', 'visibility', 'transform', 'filter', 'clipPath', 'webkitClipPath', 'letterSpacing', 'strokeDashoffset', 'animation'].forEach(function (prop) {
+        el.style[prop] = '';
+      });
+      el.removeAttribute('data-bake');
+    });
+  }
+
+  function bake(root) {
+    var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')));
+    var snap = nodes.map(function (el) {
+      return { el: el, cs: getComputedStyle(el) };
+    });
+    snap.forEach(function (item) {
+      var el = item.el;
+      var cs = item.cs;
+      el.style.opacity = cs.opacity;
+      el.style.visibility = cs.visibility;
+      if (cs.transform && cs.transform !== 'none') el.style.transform = cs.transform;
+      if (cs.filter && cs.filter !== 'none') el.style.filter = cs.filter;
+      if (cs.clipPath && cs.clipPath !== 'none') el.style.clipPath = cs.clipPath;
+      if (cs.webkitClipPath && cs.webkitClipPath !== 'none') el.style.webkitClipPath = cs.webkitClipPath;
+      if (cs.letterSpacing) el.style.letterSpacing = cs.letterSpacing;
+      if (cs.strokeDashoffset) el.style.strokeDashoffset = cs.strokeDashoffset;
+      if (cs.animationName && cs.animationName !== 'none') el.style.animation = 'none';
+      el.setAttribute('data-bake', '1');
+    });
+  }
+
+  function prepareFrame(timeSec, config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var scene = document.getElementById('scene');
+    if (!overlay) return;
+    applyGraphic(config);
+    applyAnimationTiming(overlay, config.animation || {});
+    var speed = speedOf(config.animation);
+    var start = stingStart(config.animation);
+    var exiting = timeSec >= start;
+    overlay.classList.remove('is-ready');
+    overlay.classList.toggle('is-exiting', exiting);
+    void overlay.offsetHeight;
+    var introMs = (exiting ? start : timeSec) * speed * 1000;
+    var nodes = [scene].concat(Array.prototype.slice.call(scene.querySelectorAll('*')));
+    nodes.forEach(function (el) { seekNode(el, introMs); });
+    var stingMs = exiting ? (timeSec - start) * speed * 1000 : 0;
+    Array.prototype.forEach.call(overlay.querySelectorAll('.outbar'), function (el) {
+      if (exiting) seekNode(el, stingMs);
+    });
+    if (scene) {
+      var covered = exiting && ((timeSec - start) * speed) >= (COVER_AT * 1.3);
+      scene.style.opacity = covered ? '0' : '1';
+    }
+  }
+
+  function getOverlayRenderDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var speed = speedOf(config.animation);
+    var start = stingStart(config.animation);
+    return start + (STING_DUR / speed) + 0.5;
+  }
+
+  var previewCoverTimer = null;
+  function scheduleExit(config) {
+    var overlay = document.querySelector('.overlay');
+    var holdSec = (config && config.animation && config.animation.hold != null)
+      ? Number(config.animation.hold) : GRAPHIC.animation.hold;
+    setTimeout(function () {
+      if (overlay) overlay.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+      return;
+    }
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var scene = document.getElementById('scene');
+    applyAnimationTiming(overlay, config.animation);
+    if (scene) scene.style.opacity = '';
+    if (overlay) overlay.classList.add('is-ready');
+    scheduleExit(config);
+    if (previewCoverTimer) clearTimeout(previewCoverTimer);
+    var holdSec = (config.animation && config.animation.hold != null)
+      ? Number(config.animation.hold) : GRAPHIC.animation.hold;
+    previewCoverTimer = setTimeout(function () {
+      previewCoverTimer = null;
+      if (scene && overlay && overlay.classList.contains('is-exiting')) scene.style.opacity = '0';
+    }, (holdSec + COVER_AT * 1.3) * 1000);
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    applyAnimationTiming(document.querySelector('.overlay'), (config && config.animation) || {});
+    if (window.__RENDER_WAIT_FOR_GO__) {
+      window.__RENDER_ARMED__ = true;
+    }
+  }
+
+  window.prepareFrame = prepareFrame;
+  window.getOverlayRenderDuration = getOverlayRenderDuration;
+  window.GRAPHIC = GRAPHIC;
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>

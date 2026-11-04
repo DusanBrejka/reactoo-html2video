@@ -634,6 +634,26 @@
     }, holdSec * 1000);
   }
 
+  function getTemplateTotalDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var a = config.animation || {};
+    var n = function (v, d) { return v != null ? Number(v) : d; };
+    var enterEnd = Math.max(
+      n(a.competitionTag, 0.25) + 0.95,
+      n(a.brandPanel, 0.45) + 0.7,
+      n(a.matchPanel, 0.85) + 0.85,
+      n(a.homeTeam, 0.95) + 0.85,
+      n(a.awayTeam, 1.05) + 0.85,
+      n(a.scorers, 1.35) + 0.65,
+      n(a.homeScore, 1.6) + 0.5,
+      n(a.awayScore, 1.75) + 0.5,
+      n(a.shadow, 2.2) + 1.1
+    );
+    var hold = n(a.hold, 6);
+    var exitEnd = Math.max(n(a.exitBar, 0.55), n(a.exitTag, 0.45));
+    return Math.max(hold, enterEnd) + exitEnd;
+  }
+
   function preloadImages(urls) {
     const list = urls.filter(Boolean);
     if (!list.length) return Promise.resolve();
@@ -798,6 +818,7 @@
   }
 
   window.GRAPHIC = GRAPHIC;
+  window.getTemplateTotalDuration = getTemplateTotalDuration;
   initGraphic(GRAPHIC);
   </script>
 

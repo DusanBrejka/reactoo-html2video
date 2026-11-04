@@ -18,15 +18,25 @@
       position: relative; height: 68px; display: flex; width: max-content; color: var(--ink);
       filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
     }
-    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
-    .overlay.is-exiting .beat { animation: beat-out .22s linear both; }
+    .overlay.is-ready .bug-mask { animation: score-in .8s cubic-bezier(.16,1,.3,1) both; }
+    .overlay.is-ready.is-exiting .bug-mask { animation: score-out .62s cubic-bezier(.7,0,.84,0) both; }
+    .end, .mid { opacity: 0; transform: translateY(14px) scale(.9); }
+    .overlay.is-ready .home { animation: cell-in .5s linear .16s both; }
+    .overlay.is-ready .mid { animation: cell-in .52s linear .34s both; }
+    .overlay.is-ready .away { animation: cell-in .55s linear .5s both; }
+    .overlay.is-ready.is-exiting .home { animation: cell-out .62s linear both; }
+    .overlay.is-ready.is-exiting .mid { animation: cell-out .62s linear .08s both; }
+    .overlay.is-ready.is-exiting .away { animation: cell-out .62s linear both; }
     .end { width: 72px; display: flex; align-items: center; justify-content: center; }
     .home { background: linear-gradient(90deg, var(--home), #4A1840); }
     .away { background: var(--away); }
     .end img { width: 52px; height: 60px; object-fit: contain; }
     .mid { display: flex; align-items: center; gap: 12px; padding: 0 14px; background: var(--ground); font: 800 42px/1 "Barlow Condensed", Impact, sans-serif; }
     .mid img { width: 30px; height: 30px; object-fit: contain; }
-    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
+    @keyframes score-in { from { width: 0; } to { width: var(--open, 360px); overflow: visible; } }
+    @keyframes score-out { 0%, 20% { width: var(--open, 360px); } 100% { width: 0; } }
+    @keyframes cell-in { 0% { opacity: 0; transform: translateY(14px) scale(.86); } 68% { opacity: 1; transform: translateY(-2px) scale(1.05); } 100% { opacity: 1; transform: none; } }
+    @keyframes cell-out { 0%, 8% { opacity: 1; transform: none; } 70% { opacity: 0; transform: translateY(8px) scale(.9); } 100% { opacity: 0; transform: translateY(8px) scale(.9); } }
   </style>
 </head>
 <body>
@@ -38,7 +48,6 @@
       <div class="end away"><img id="away-crest" alt=""></div>
     </div>
     </div>
-    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -48,7 +57,7 @@
     colors: { home: '#C8102E', away: '#3C9FE6', ink: '#ffffff', ground: '#071833' },
     images: { homeCrest: 'crest-liverpool.png', awayCrest: 'crest-city.png', leagueCrest: 'crest-league.png' },
     text: { homeScore: '0', awayScore: '0' },
-    animation: { hold: 3, tailPad: 0.2 }
+    animation: { hold: 3.8, tailPad: 0.2 }
   };
   function resolveAssetUrl(url) {
     if (!url) return '';
@@ -79,26 +88,42 @@
     setImg('league-crest', images.leagueCrest);
     document.getElementById('home-score').textContent = text.homeScore == null ? '' : String(text.homeScore);
     document.getElementById('away-score').textContent = text.awayScore == null ? '' : String(text.awayScore);
+    fitScoreMask();
   }
-  function applyAnimationTiming() {}
-  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
-  function wipePhase(t, hold, inn, outd) {
-    if (t < inn) return { phase: 'in', p: wipeEase(t / inn) };
-    if (t < hold) return { phase: 'hold', p: 1 };
-    return { phase: 'out', p: wipeEase(Math.min(1, (t - hold) / outd)) };
-  }
-  function seekGraphic(t, config) {
-    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 3;
-    var w = wipePhase(t, hold, 0.2, 0.22);
-    var open = w.phase === 'out' ? 1 - w.p : w.p;
+  function fitScoreMask() {
     var mask = document.querySelector('.bug-mask');
     var bug = document.querySelector('.bug');
+    if (!mask || !bug) return;
+    mask.style.width = '1200px';
+    var w = bug.scrollWidth || 360;
+    mask.style.width = '';
+    mask.style.setProperty('--open', w + 'px');
+  }
+  function applyAnimationTiming() {}
+  function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+  function easeOut(x) { x = clamp01(x); return 1 - Math.pow(1 - x, 3); }
+  function win(t, delay, dur) { return clamp01((t - delay) / dur); }
+  function seekGraphic(t, config) {
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 3.8;
+    var exiting = t >= hold;
+    var u = exiting ? (t - hold) / 0.62 : t;
+    var open = exiting ? (u < 0.2 ? 1 : 1 - easeOut((u - 0.2) / 0.8)) : easeOut(t / 0.8);
+    var mask = document.querySelector('.bug-mask');
+    var bug = document.querySelector('.bug');
+    document.querySelectorAll('.bug-mask, .home, .mid, .away').forEach(function (node) { node.style.animation = 'none'; });
     mask.style.width = '800px';
     var full = bug.scrollWidth || 280;
-    var vis = Math.round(full * open);
+    var vis = Math.round(full * clamp01(open));
     mask.style.width = vis + 'px';
     mask.style.overflow = open >= 0.999 ? 'visible' : 'hidden';
     mask.style.visibility = vis <= 0 ? 'hidden' : 'visible';
+    [['.home', 0.16, 0.5], ['.mid', 0.34, 0.52], ['.away', 0.5, 0.55]].forEach(function (spec) {
+      var el = document.querySelector(spec[0]);
+      var p = exiting ? (u < 0.08 ? 1 : 1 - clamp01((u - 0.08) / 0.62)) : win(t, spec[1], spec[2]);
+      var s = exiting ? (0.9 + 0.1 * p) : (p < 0.68 ? 0.86 + 0.19 * (p / 0.68) : 1.05 - 0.05 * ((p - 0.68) / 0.32));
+      el.style.opacity = String(clamp01(p));
+      el.style.transform = 'translateY(' + ((1 - clamp01(p)) * 14) + 'px) scale(' + s.toFixed(3) + ')';
+    });
   }
   window.__RENDER_USE_TEMPLATE_SEEK__ = true;
   window.seekGraphic = seekGraphic;
@@ -109,16 +134,34 @@
       return new Promise(function (resolve) { var img = new Image(); img.onload = img.onerror = resolve; img.src = url; });
     }));
   }
-  function startAnimation() {
-    if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
+  function scheduleExit(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
     var overlay = document.querySelector('.overlay');
-    if (overlay) overlay.classList.add('is-ready');
+    var holdSec = (config.animation && config.animation.hold != null) ? Number(config.animation.hold) : 3.8;
+    setTimeout(function () {
+      if (overlay && !window.__RENDER_WAIT_FOR_GO__) overlay.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
+    fitScoreMask();
+    var overlay = document.querySelector('.overlay');
+    if (overlay) {
+      overlay.classList.remove('is-exiting');
+      overlay.classList.add('is-ready');
+    }
+    scheduleExit(config || window.GRAPHIC || GRAPHIC);
   }
   function initGraphic(config) {
     applyGraphic(config);
-    var ready = function () { preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(startAnimation); };
-    if (document.readyState === 'complete') ready();
-    else window.addEventListener('load', ready, { once: true });
+    var whenReady = function () {
+      preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(function () { startAnimation(config); });
+    };
+    if (document.readyState === 'complete') {
+      whenReady();
+    } else {
+      window.addEventListener('load', whenReady, { once: true });
+    }
   }
   window.applyGraphic = applyGraphic;
   window.applyAnimationTiming = applyAnimationTiming;

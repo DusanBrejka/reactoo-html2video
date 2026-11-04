@@ -13,10 +13,24 @@
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
-    .ident-mask { position: absolute; left: 50%; bottom: 136px; height: 118px; width: 0; overflow: hidden; }
-    .ident { position: absolute; top: 20px; left: 0; width: 980px; height: 78px; }
-    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
-    .overlay.is-exiting .beat { animation: beat-out .36s linear both; }
+    .ident-mask { position: absolute; left: 50%; bottom: 136px; height: 118px; width: 0; margin-left: 0; overflow: hidden; }
+    .ident { position: absolute; top: 20px; left: -490px; width: 980px; height: 78px; }
+    .overlay.is-ready .ident-mask { animation: ident-in .9s cubic-bezier(.16,1,.3,1) both; }
+    .overlay.is-ready .ident { animation: ident-shift-in .9s cubic-bezier(.16,1,.3,1) both; }
+    .overlay.is-ready.is-exiting .ident-mask { animation: ident-out .78s cubic-bezier(.7,0,.84,0) both; }
+    .overlay.is-ready.is-exiting .ident { animation: ident-shift-out .78s cubic-bezier(.7,0,.84,0) both; }
+    .side img, .league img { opacity: 0; transform: scale(.5); transform-origin: center; }
+    .side span { opacity: 0; transform: translateY(18px); }
+    .tab { opacity: 0; transform: translateY(-12px) scale(.82); }
+    .date { opacity: 0; transform: translateY(10px); }
+    .overlay.is-ready .side img, .overlay.is-ready .league img { animation: crest-in .72s linear .34s both; }
+    .overlay.is-ready .side span { animation: name-in .55s cubic-bezier(.16,1,.3,1) .5s both; }
+    .overlay.is-ready .tab { animation: tab-in .48s cubic-bezier(.16,1.15,.3,1) .68s both; }
+    .overlay.is-ready .date { animation: date-in .42s cubic-bezier(.16,1,.3,1) .84s both; }
+    .overlay.is-ready.is-exiting .side img, .overlay.is-ready.is-exiting .league img { animation: crest-out .78s linear both; }
+    .overlay.is-ready.is-exiting .side span { animation: name-out .78s linear both; }
+    .overlay.is-ready.is-exiting .tab { animation: tab-out .78s linear both; }
+    .overlay.is-ready.is-exiting .date { animation: date-out .78s linear both; }
     .bar { position: relative; display: flex; height: 78px; color: var(--ink); filter: drop-shadow(0 8px 16px rgba(0,0,0,.35)); }
     .side { flex: 1; display: flex; align-items: center; gap: 14px; padding: 0 18px; font: 600 40px/1 Barlow, "Arial Narrow", sans-serif; }
     .home { background: linear-gradient(90deg, var(--home) 0%, #7A1A3A 48%, var(--ground) 100%); justify-content: flex-start; }
@@ -25,9 +39,20 @@
     .league img { width: 46px; height: 46px; object-fit: contain; }
     .side img { width: 52px; height: 58px; object-fit: contain; }
     .tab, .date { color: var(--ink); text-transform: uppercase; }
-    .tab { position: absolute; left: 0; top: -16px; background: var(--tab); font: 700 13px/1 Barlow, sans-serif; letter-spacing: .14em; padding: 4px 10px 3px; }
+    .tab { position: absolute; left: 0; top: -16px; background: var(--tab); font: 700 13px/1 Barlow, sans-serif; letter-spacing: .14em; padding: 4px 10px 3px; transform-origin: left center; }
     .date { position: absolute; right: 0; bottom: -16px; font: 500 12px/1 Barlow, sans-serif; letter-spacing: .06em; }
-    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
+    @keyframes ident-in { from { width: 0; margin-left: 0; } to { width: 980px; margin-left: -490px; overflow: visible; } }
+    @keyframes ident-out { 0%, 22% { width: 980px; margin-left: -490px; } 100% { width: 0; margin-left: 0; } }
+    @keyframes ident-shift-in { from { left: -490px; } to { left: 0; } }
+    @keyframes ident-shift-out { 0%, 22% { left: 0; } 100% { left: -490px; } }
+    @keyframes crest-in { 0% { opacity: 0; transform: scale(.5); } 68% { opacity: 1; transform: scale(1.07); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes crest-out { 0%, 14% { opacity: 1; transform: scale(1); } 58% { opacity: 0; transform: scale(.55); } 100% { opacity: 0; transform: scale(.55); } }
+    @keyframes name-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    @keyframes name-out { 0%, 8% { opacity: 1; transform: none; } 46% { opacity: 0; transform: translateY(12px); } 100% { opacity: 0; transform: translateY(12px); } }
+    @keyframes tab-in { 0% { opacity: 0; transform: translateY(-12px) scale(.82); } 70% { opacity: 1; transform: translateY(1px) scale(1.04); } 100% { opacity: 1; transform: none; } }
+    @keyframes tab-out { 0% { opacity: 1; transform: none; } 34% { opacity: 0; transform: translateY(-10px) scale(.8); } 100% { opacity: 0; transform: translateY(-10px) scale(.8); } }
+    @keyframes date-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes date-out { 0% { opacity: 1; transform: none; } 30% { opacity: 0; transform: translateY(8px); } 100% { opacity: 0; transform: translateY(8px); } }
   </style>
 </head>
 <body>
@@ -42,7 +67,6 @@
       </div>
     </div>
     </div>
-    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -52,7 +76,7 @@
     colors: { home: '#D71920', away: '#3C9AD9', ink: '#ffffff', ground: '#071E3D', tab: '#163E86' },
     images: { homeCrest: 'crest-liverpool.png', awayCrest: 'crest-city.png', leagueCrest: 'crest-league.png' },
     text: { homeName: 'Liverpool', awayName: 'Man City', stadium: 'ANFIELD', date: 'SUN 11/10/26 · 16:30 (UK)' },
-    animation: { hold: 3.2, tailPad: 0.2 }
+    animation: { hold: 4.2, tailPad: 0.2 }
   };
   function resolveAssetUrl(url) {
     if (!url) return '';
@@ -94,18 +118,22 @@
     setText('date', text.date);
   }
   function applyAnimationTiming() {}
-  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
-  function wipePhase(t, hold, inn, outd) {
-    if (t < inn) return { phase: 'in', p: wipeEase(t / inn) };
-    if (t < hold) return { phase: 'hold', p: 1 };
-    return { phase: 'out', p: wipeEase(Math.min(1, (t - hold) / outd)) };
-  }
+  function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+  function easeOut(x) { x = clamp01(x); return 1 - Math.pow(1 - x, 3); }
+  function win(t, delay, dur) { return clamp01((t - delay) / dur); }
   function seekGraphic(t, config) {
-    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 3.2;
-    var w = wipePhase(t, hold, 0.42, 0.36);
-    var open = w.phase === 'out' ? 1 - w.p : w.p;
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 4.2;
+    var exiting = t >= hold;
+    var u = exiting ? (t - hold) / 0.78 : t;
+    var open = exiting ? (u < 0.22 ? 1 : 1 - easeOut((u - 0.22) / 0.78)) : easeOut(t / 0.9);
+    var crest = exiting ? (u < 0.14 ? 1 : 1 - clamp01((u - 0.14) / 0.44)) : win(t, 0.34, 0.72);
+    var name = exiting ? (u < 0.08 ? 1 : 1 - clamp01((u - 0.08) / 0.38)) : win(t, 0.5, 0.55);
+    var tab = exiting ? 1 - clamp01(u / 0.34) : win(t, 0.68, 0.48);
+    var date = exiting ? 1 - clamp01(u / 0.3) : win(t, 0.84, 0.42);
+    var crestScale = exiting ? (0.55 + 0.45 * crest) : (crest < 0.68 ? 0.5 + 0.57 * (crest / 0.68) : 1.07 - 0.07 * ((crest - 0.68) / 0.32));
+    document.querySelectorAll('.ident-mask, .ident, .side img, .league img, .side span, .tab, .date').forEach(function (node) { node.style.animation = 'none'; });
     var full = 980;
-    var vis = Math.round(full * open);
+    var vis = Math.round(full * clamp01(open));
     var mask = document.querySelector('.ident-mask');
     var el = document.querySelector('.ident');
     mask.style.width = vis + 'px';
@@ -113,6 +141,22 @@
     mask.style.overflow = open >= 0.999 ? 'visible' : 'hidden';
     mask.style.visibility = open <= 0 ? 'hidden' : 'visible';
     el.style.left = ((vis - full) / 2) + 'px';
+    document.querySelectorAll('.side img, .league img').forEach(function (img) {
+      img.style.opacity = String(clamp01(crest));
+      img.style.transform = 'scale(' + crestScale.toFixed(3) + ')';
+    });
+    document.querySelectorAll('.side span').forEach(function (node) {
+      node.style.opacity = String(clamp01(name));
+      node.style.transform = 'translateY(' + ((1 - clamp01(name)) * 18) + 'px)';
+    });
+    var tabEl = document.querySelector('.tab');
+    var tabP = clamp01(tab);
+    tabEl.style.opacity = String(tabP);
+    tabEl.style.transform = 'translateY(' + ((1 - tabP) * -12) + 'px) scale(' + (0.82 + 0.18 * tabP) + ')';
+    var dateEl = document.querySelector('.date');
+    var dateP = clamp01(date);
+    dateEl.style.opacity = String(dateP);
+    dateEl.style.transform = 'translateY(' + ((1 - dateP) * 10) + 'px)';
   }
   window.__RENDER_USE_TEMPLATE_SEEK__ = true;
   window.seekGraphic = seekGraphic;
@@ -127,18 +171,33 @@
       });
     }));
   }
-  function startAnimation() {
+  function scheduleExit(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var overlay = document.querySelector('.overlay');
+    var holdSec = (config.animation && config.animation.hold != null) ? Number(config.animation.hold) : 4.2;
+    setTimeout(function () {
+      if (overlay && !window.__RENDER_WAIT_FOR_GO__) overlay.classList.add('is-exiting');
+    }, holdSec * 1000);
+  }
+  function startAnimation(config) {
     if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
     var overlay = document.querySelector('.overlay');
-    if (overlay) overlay.classList.add('is-ready');
+    if (overlay) {
+      overlay.classList.remove('is-exiting');
+      overlay.classList.add('is-ready');
+    }
+    scheduleExit(config || window.GRAPHIC || GRAPHIC);
   }
   function initGraphic(config) {
     applyGraphic(config);
-    var ready = function () {
-      preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(startAnimation);
+    var whenReady = function () {
+      preloadImages(Object.values((config && config.images) || {}).map(resolveAssetUrl)).then(function () { startAnimation(config); });
     };
-    if (document.readyState === 'complete') ready();
-    else window.addEventListener('load', ready, { once: true });
+    if (document.readyState === 'complete') {
+      whenReady();
+    } else {
+      window.addEventListener('load', whenReady, { once: true });
+    }
   }
   window.applyGraphic = applyGraphic;
   window.applyAnimationTiming = applyAnimationTiming;

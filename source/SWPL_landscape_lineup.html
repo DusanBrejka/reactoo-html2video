@@ -644,6 +644,7 @@
   }
 
   function applyGraphic(config) {
+    if (config && config.animation) Object.assign((window.GRAPHIC || GRAPHIC).animation, config.animation);
     document.title = config.pageTitle;
 
     const overlay = document.querySelector('.overlay');
@@ -717,6 +718,23 @@
     setTimeout(() => {
       if (overlay) overlay.classList.add('is-exiting');
     }, holdSec * 1000);
+  }
+
+  function getTemplateTotalDuration(config) {
+    config = config || window.GRAPHIC || GRAPHIC;
+    var a = config.animation || {};
+    var n = function (v, d) { return v != null ? Number(v) : d; };
+    var enterEnd = Math.max(
+      n(a.competitionTag, 0.2) + 0.95,
+      n(a.lineupBoard, 0.35) + 0.85,
+      n(a.homeCrest, 0.55) + 0.7,
+      n(a.awayCrest, 0.65) + 0.7,
+      n(a.lineupBody, 0.85) + 0.75,
+      n(a.shadow, 1.6) + 1.1
+    );
+    var hold = n(a.hold, 8);
+    var exitEnd = Math.max(n(a.exitBoard, 0.55), n(a.exitTag, 0.45));
+    return Math.max(hold, enterEnd) + exitEnd;
   }
 
   function preloadImages(urls) {
@@ -884,6 +902,7 @@
 
   window.GRAPHIC = GRAPHIC;
   window.applyGraphic = applyGraphic;
+  window.getTemplateTotalDuration = getTemplateTotalDuration;
   initGraphic(GRAPHIC);
   </script>
 
