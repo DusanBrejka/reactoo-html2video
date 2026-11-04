@@ -9,22 +9,22 @@
     .overlay {
       position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
       font-family: "Barlow Condensed", Impact, sans-serif;
-      --home: #C8102E; --away: #3FA0E0; --ink: #ffffff; --ground: #071833;
+      --home: #C8102E; --away: #3C9FE6; --ink: #ffffff; --ground: #071833;
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
     .bug {
-      position: absolute; left: 48px; top: 36px; height: 74px; display: flex; color: var(--ink);
+      position: absolute; left: 36px; top: 28px; height: 68px; display: flex; color: var(--ink);
       filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
       animation: score-in .4s cubic-bezier(.2,.8,.2,1) both;
     }
     .overlay.is-exiting .bug { animation: score-out .35s ease both; }
-    .end { width: 78px; display: flex; align-items: center; justify-content: center; }
-    .home { background: var(--home); }
+    .end { width: 72px; display: flex; align-items: center; justify-content: center; }
+    .home { background: linear-gradient(90deg, var(--home), #4A1840); }
     .away { background: var(--away); }
-    .end img { width: 52px; height: 52px; object-fit: contain; }
-    .mid { display: flex; align-items: center; gap: 14px; padding: 0 16px; background: var(--ground); font: 800 52px/1 "Barlow Condensed", Impact, sans-serif; }
-    .mid img { width: 36px; height: 36px; object-fit: contain; }
+    .end img { width: 52px; height: 60px; object-fit: contain; }
+    .mid { display: flex; align-items: center; gap: 12px; padding: 0 14px; background: var(--ground); font: 800 42px/1 "Barlow Condensed", Impact, sans-serif; }
+    .mid img { width: 30px; height: 30px; object-fit: contain; }
     @keyframes score-in { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
     @keyframes score-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-36px); } }
   </style>
@@ -42,8 +42,8 @@
   const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/mancity/';
   const GRAPHIC = {
     pageTitle: 'Manchester City score',
-    colors: { home: '#C8102E', away: '#3FA0E0', ink: '#ffffff', ground: '#071833' },
-    images: { homeCrest: 'home.svg', awayCrest: 'city.png', leagueCrest: 'league.svg' },
+    colors: { home: '#C8102E', away: '#3C9FE6', ink: '#ffffff', ground: '#071833' },
+    images: { homeCrest: 'crest-liverpool.png', awayCrest: 'crest-city.png', leagueCrest: 'crest-league.png' },
     text: { homeScore: '0', awayScore: '0' },
     animation: { hold: 3, tailPad: 0.2 }
   };

@@ -8,7 +8,7 @@
     html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
     .overlay {
       position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
-      --ground: #0B1F4D; --ink: #ffffff;
+      --ground: #0A3A78; --ink: #ffffff;
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
@@ -19,8 +19,8 @@
     }
     .overlay.is-exiting .plate { animation: half-out .4s ease both; }
     .crests { display: flex; gap: 22px; }
-    .crests img { width: 64px; height: 64px; object-fit: contain; }
-    .label { font: 800 148px/0.9 "Barlow Condensed", Impact, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+    .crests img { width: 72px; height: 96px; object-fit: contain; }
+    .label { font: 800 132px/0.9 "Barlow Condensed", Impact, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
     @keyframes half-in { from { opacity: 0; transform: translateX(-70px); } to { opacity: 1; transform: none; } }
     @keyframes half-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(70px); } }
   </style>
@@ -37,8 +37,8 @@
   const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/mancity/';
   const GRAPHIC = {
     pageTitle: 'Manchester City second half',
-    colors: { ground: '#0B1F4D', ink: '#ffffff' },
-    images: { homeCrest: 'home.svg', awayCrest: 'city.png' },
+    colors: { ground: '#0A3A78', ink: '#ffffff' },
+    images: { homeCrest: 'crest-liverpool.png', awayCrest: 'crest-city.png' },
     text: { label: '2ND HALF' },
     animation: { hold: 1.35, tailPad: 0.2 }
   };

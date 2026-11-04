@@ -3,30 +3,31 @@
 <head>
   <meta charset="utf-8">
   <title>Manchester City match bar</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&amp;display=swap" rel="stylesheet">
   <style>
     html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
     .overlay {
       position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
-      font-family: "Barlow Condensed", Impact, sans-serif;
-      --home: #C8102E; --away: #6CB4FF; --ink: #ffffff; --ground: #071833; --tab: #1E4E9A;
+      font-family: Barlow, "Arial Narrow", sans-serif;
+      --home: #D71920; --away: #3C9AD9; --ink: #ffffff; --ground: #071E3D; --tab: #163E86;
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
     .ident {
-      position: absolute; left: 50%; bottom: 168px; width: 1040px; margin-left: -520px; height: 86px;
+      position: absolute; left: 50%; bottom: 156px; width: 980px; margin-left: -490px; height: 78px;
       animation: ident-in .45s cubic-bezier(.2,.8,.2,1) both;
     }
     .overlay.is-exiting .ident { animation: ident-out .4s ease both; }
-    .bar { display: flex; height: 86px; color: var(--ink); filter: drop-shadow(0 10px 18px rgba(0,0,0,.35)); }
-    .side { flex: 1; display: flex; align-items: center; gap: 16px; padding: 0 22px; font: 700 42px/1 "Barlow Condensed", Impact, sans-serif; letter-spacing: .02em; text-transform: uppercase; }
-    .home { background: linear-gradient(90deg, var(--home), var(--ground)); justify-content: flex-start; }
-    .away { background: linear-gradient(90deg, var(--ground), var(--away)); justify-content: flex-end; }
-    .league { width: 92px; display: flex; align-items: center; justify-content: center; background: var(--ground); }
-    .league img, .side img { width: 58px; height: 58px; object-fit: contain; }
-    .tab, .date { position: absolute; color: var(--ink); text-transform: uppercase; animation: meta-in .35s ease .4s both; }
-    .tab { left: 0; top: -26px; background: var(--tab); font: 700 16px/1 "Barlow Condensed", Impact, sans-serif; letter-spacing: .16em; padding: 6px 12px; }
-    .date { right: 0; bottom: -24px; font: 600 16px/1 "Barlow Condensed", Impact, sans-serif; letter-spacing: .08em; }
+    .bar { position: relative; display: flex; height: 78px; color: var(--ink); filter: drop-shadow(0 8px 16px rgba(0,0,0,.35)); }
+    .side { flex: 1; display: flex; align-items: center; gap: 14px; padding: 0 18px; font: 600 40px/1 Barlow, "Arial Narrow", sans-serif; }
+    .home { background: linear-gradient(90deg, var(--home) 0%, #7A1A3A 48%, var(--ground) 100%); justify-content: flex-start; }
+    .away { position: relative; background: linear-gradient(90deg, var(--ground) 0%, #1A5C9C 42%, var(--away) 100%); justify-content: flex-end; }
+    .league { width: 108px; display: flex; align-items: center; justify-content: center; background: var(--ground); }
+    .league img { width: 46px; height: 46px; object-fit: contain; }
+    .side img { width: 52px; height: 58px; object-fit: contain; }
+    .tab, .date { color: var(--ink); text-transform: uppercase; animation: meta-in .35s ease .35s both; }
+    .tab { position: absolute; left: 0; top: -16px; background: var(--tab); font: 700 13px/1 Barlow, sans-serif; letter-spacing: .14em; padding: 4px 10px 3px; }
+    .date { position: absolute; right: 0; bottom: -16px; font: 500 12px/1 Barlow, sans-serif; letter-spacing: .06em; }
     @keyframes ident-in { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
     @keyframes ident-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(28px); } }
     @keyframes meta-in { from { opacity: 0; } to { opacity: 1; } }
@@ -39,9 +40,8 @@
       <div class="bar">
         <div class="side home"><img id="home-crest" alt=""><span id="home-name"></span></div>
         <div class="league"><img id="league-crest" alt=""></div>
-        <div class="side away"><span id="away-name"></span><img id="away-crest" alt=""></div>
+        <div class="side away"><span id="away-name"></span><img id="away-crest" alt=""><div class="date" id="date"></div></div>
       </div>
-      <div class="date" id="date"></div>
     </div>
   </div>
   <script>
@@ -49,9 +49,9 @@
   const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/mancity/';
   const GRAPHIC = {
     pageTitle: 'Manchester City match bar',
-    colors: { home: '#C8102E', away: '#6CB4FF', ink: '#ffffff', ground: '#071833', tab: '#1E4E9A' },
-    images: { homeCrest: 'home.svg', awayCrest: 'city.png', leagueCrest: 'league.svg' },
-    text: { homeName: 'Liverpool', awayName: 'Man City', stadium: 'ANFIELD', date: 'SUN 11/10/26 - 16:30 (UK)' },
+    colors: { home: '#D71920', away: '#3C9AD9', ink: '#ffffff', ground: '#071E3D', tab: '#163E86' },
+    images: { homeCrest: 'crest-liverpool.png', awayCrest: 'crest-city.png', leagueCrest: 'crest-league.png' },
+    text: { homeName: 'Liverpool', awayName: 'Man City', stadium: 'ANFIELD', date: 'SUN 11/10/26 · 16:30 (UK)' },
     animation: { hold: 3.2, tailPad: 0.2 }
   };
   function resolveAssetUrl(url) {

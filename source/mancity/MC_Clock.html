@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <title>Manchester City minute</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&amp;display=swap" rel="stylesheet">
   <style>
     html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
     .overlay {
       position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
-      --pill: #1E4E9A; --ink: #ffffff;
+      --pill: #1E4FA8; --ink: #ffffff;
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
     .pill {
-      position: absolute; left: 64px; bottom: 72px; margin: 0;
+      position: absolute; left: 48px; bottom: 52px; margin: 0;
       background: var(--pill); color: var(--ink);
-      font: italic 800 52px/1 "Barlow Condensed", Impact, sans-serif;
-      padding: 14px 28px 12px; border-radius: 40px;
+      font: 800 40px/1 "Barlow Condensed", Impact, sans-serif;
+      padding: 10px 22px 8px; border-radius: 26px;
       filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
       animation: clock-in .35s cubic-bezier(.2,.8,.2,1) both;
     }
@@ -33,7 +33,7 @@
   'use strict';
   const GRAPHIC = {
     pageTitle: 'Manchester City minute',
-    colors: { pill: '#1E4E9A', ink: '#ffffff' },
+    colors: { pill: '#1E4FA8', ink: '#ffffff' },
     text: { minute: "19'" },
     animation: { hold: 3, tailPad: 0.2 }
   };
