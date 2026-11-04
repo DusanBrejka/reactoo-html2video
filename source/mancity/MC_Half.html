@@ -12,25 +12,28 @@
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
+    .plate-mask { position: absolute; top: 0; left: 0; height: 1080px; width: 0; overflow: hidden; }
     .plate {
-      position: absolute; inset: 0; background: var(--ground); color: var(--ink);
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; background: var(--ground); color: var(--ink);
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
-      animation: half-in .4s cubic-bezier(.2,.8,.2,1) both;
     }
-    .overlay.is-exiting .plate { animation: half-out .4s ease both; }
+    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
+    .overlay.is-exiting .beat { animation: beat-out .28s linear both; }
     .crests { display: flex; gap: 22px; }
     .crests img { width: 72px; height: 96px; object-fit: contain; }
     .label { font: 800 132px/0.9 "Barlow Condensed", Impact, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
-    @keyframes half-in { from { opacity: 0; transform: translateX(-70px); } to { opacity: 1; transform: none; } }
-    @keyframes half-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(70px); } }
+    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
   </style>
 </head>
 <body>
   <div class="overlay" data-render-overlay>
+    <div class="plate-mask">
     <div class="plate">
       <div class="crests"><img id="home-crest" alt=""><img id="away-crest" alt=""></div>
       <div class="label" id="label"></div>
     </div>
+    </div>
+    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -71,6 +74,33 @@
     document.getElementById('label').textContent = text.label == null ? '' : String(text.label);
   }
   function applyAnimationTiming() {}
+  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
+  function wipePhase(t, hold, inn, outd) {
+    if (t < inn) return { phase: 'in', p: wipeEase(t / inn) };
+    if (t < hold) return { phase: 'hold', p: 1 };
+    return { phase: 'out', p: wipeEase(Math.min(1, (t - hold) / outd)) };
+  }
+  function seekGraphic(t, config) {
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 1.35;
+    var w = wipePhase(t, hold, 0.26, 0.28);
+    var full = 1920;
+    var mask = document.querySelector('.plate-mask');
+    var plate = document.querySelector('.plate');
+    var vis, left;
+    if (w.phase === 'out') {
+      left = Math.round(full * w.p);
+      vis = full - left;
+    } else {
+      left = 0;
+      vis = Math.round(full * w.p);
+    }
+    mask.style.left = left + 'px';
+    mask.style.width = vis + 'px';
+    mask.style.visibility = vis <= 0 ? 'hidden' : 'visible';
+    plate.style.left = (-left) + 'px';
+  }
+  window.__RENDER_USE_TEMPLATE_SEEK__ = true;
+  window.seekGraphic = seekGraphic;
   function preloadImages(urls) {
     var list = (urls || []).filter(Boolean);
     if (!list.length) return Promise.resolve();

@@ -17,17 +17,18 @@
       background: var(--pill); color: var(--ink);
       font: 800 40px/1 "Barlow Condensed", Impact, sans-serif;
       padding: 10px 22px 8px; border-radius: 26px;
+      transform-origin: left center;
       filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
-      animation: clock-in .35s cubic-bezier(.2,.8,.2,1) both;
     }
-    .overlay.is-exiting .pill { animation: clock-out .3s ease both; }
-    @keyframes clock-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
-    @keyframes clock-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(20px); } }
+    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
+    .overlay.is-exiting .beat { animation: beat-out .16s linear both; }
+    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
   </style>
 </head>
 <body>
   <div class="overlay" data-render-overlay>
     <p class="pill" id="minute"></p>
+    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -50,6 +51,24 @@
     document.getElementById('minute').textContent = text == null ? '' : String(text);
   }
   function applyAnimationTiming() {}
+  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
+  function seekGraphic(t, config) {
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 3;
+    var inn = 0.16, outd = 0.16;
+    var pill = document.getElementById('minute');
+    var s;
+    if (t < inn) {
+      var p = wipeEase(t / inn);
+      s = p < 0.75 ? (p / 0.75) * 1.05 : 1.05 - 0.05 * ((p - 0.75) / 0.25);
+    } else if (t < hold) s = 1;
+    else s = 1 - wipeEase(Math.min(1, (t - hold) / outd));
+    pill.style.animation = 'none';
+    pill.style.transformOrigin = 'left center';
+    pill.style.transform = 'scale(' + s.toFixed(4) + ')';
+    pill.style.opacity = s < 0.04 ? '0' : '1';
+  }
+  window.__RENDER_USE_TEMPLATE_SEEK__ = true;
+  window.seekGraphic = seekGraphic;
   function startAnimation() {
     if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
     var overlay = document.querySelector('.overlay');

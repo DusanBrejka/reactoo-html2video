@@ -13,14 +13,15 @@
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
+    .panel-mask { position: absolute; left: 50%; top: 40px; height: 1000px; width: 0; overflow: hidden; }
     .panel {
-      position: absolute; left: 50%; top: 40px; width: 640px; margin-left: -320px; min-height: 960px;
+      position: absolute; top: 0; left: 0; width: 640px; min-height: 960px;
       background: linear-gradient(180deg, #1B4F8E 0%, #0E356C 38%, #0A2858 100%);
       color: var(--ink); padding: 36px 40px 28px;
       box-shadow: 0 18px 40px rgba(0,0,0,.28);
-      animation: panel-in .5s cubic-bezier(.2,.8,.2,1) both;
     }
-    .overlay.is-exiting .panel { animation: panel-out .4s ease both; }
+    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
+    .overlay.is-exiting .beat { animation: beat-out .4s linear both; }
     .crests { display: flex; justify-content: center; gap: 28px; margin-bottom: 18px; }
     .crests img { width: 70px; height: 78px; object-fit: contain; }
     #players { width: max-content; margin: 22px auto 0; }
@@ -37,12 +38,12 @@
       padding: 4px 16px 3px; font: 600 12px/1 Barlow, sans-serif; letter-spacing: .18em;
     }
     .subs { margin-top: 16px; color: rgba(255,255,255,.42); font: 600 13px/1.4 "Barlow Condensed", sans-serif; letter-spacing: .14em; text-transform: uppercase; }
-    @keyframes panel-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
-    @keyframes panel-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(16px); } }
+    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
   </style>
 </head>
 <body>
   <div class="overlay" data-render-overlay>
+    <div class="panel-mask">
     <div class="panel">
       <div class="crests">
         <img id="left-crest" alt="">
@@ -55,6 +56,8 @@
         <div class="subs" id="subs"></div>
       </div>
     </div>
+    </div>
+    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -141,6 +144,28 @@
     subs.style.display = subs.textContent ? '' : 'none';
   }
   function applyAnimationTiming() {}
+  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
+  function wipePhase(t, hold, inn, outd) {
+    if (t < inn) return { phase: 'in', p: wipeEase(t / inn) };
+    if (t < hold) return { phase: 'hold', p: 1 };
+    return { phase: 'out', p: wipeEase(Math.min(1, (t - hold) / outd)) };
+  }
+  function seekGraphic(t, config) {
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 4.2;
+    var w = wipePhase(t, hold, 0.42, 0.4);
+    var open = w.phase === 'out' ? 1 - w.p : w.p;
+    var full = 640;
+    var vis = Math.round(full * open);
+    var mask = document.querySelector('.panel-mask');
+    var el = document.querySelector('.panel');
+    mask.style.width = vis + 'px';
+    mask.style.marginLeft = (-vis / 2) + 'px';
+    mask.style.overflow = open >= 0.999 ? 'visible' : 'hidden';
+    mask.style.visibility = open <= 0 ? 'hidden' : 'visible';
+    el.style.left = ((vis - full) / 2) + 'px';
+  }
+  window.__RENDER_USE_TEMPLATE_SEEK__ = true;
+  window.seekGraphic = seekGraphic;
   function preloadImages(urls) {
     var list = (urls || []).filter(Boolean);
     if (!list.length) return Promise.resolve();

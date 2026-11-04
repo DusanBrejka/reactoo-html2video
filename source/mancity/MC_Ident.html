@@ -13,11 +13,10 @@
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
-    .ident {
-      position: absolute; left: 50%; bottom: 156px; width: 980px; margin-left: -490px; height: 78px;
-      animation: ident-in .45s cubic-bezier(.2,.8,.2,1) both;
-    }
-    .overlay.is-exiting .ident { animation: ident-out .4s ease both; }
+    .ident-mask { position: absolute; left: 50%; bottom: 136px; height: 118px; width: 0; overflow: hidden; }
+    .ident { position: absolute; top: 20px; left: 0; width: 980px; height: 78px; }
+    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
+    .overlay.is-exiting .beat { animation: beat-out .36s linear both; }
     .bar { position: relative; display: flex; height: 78px; color: var(--ink); filter: drop-shadow(0 8px 16px rgba(0,0,0,.35)); }
     .side { flex: 1; display: flex; align-items: center; gap: 14px; padding: 0 18px; font: 600 40px/1 Barlow, "Arial Narrow", sans-serif; }
     .home { background: linear-gradient(90deg, var(--home) 0%, #7A1A3A 48%, var(--ground) 100%); justify-content: flex-start; }
@@ -25,16 +24,15 @@
     .league { width: 108px; display: flex; align-items: center; justify-content: center; background: var(--ground); }
     .league img { width: 46px; height: 46px; object-fit: contain; }
     .side img { width: 52px; height: 58px; object-fit: contain; }
-    .tab, .date { color: var(--ink); text-transform: uppercase; animation: meta-in .35s ease .35s both; }
+    .tab, .date { color: var(--ink); text-transform: uppercase; }
     .tab { position: absolute; left: 0; top: -16px; background: var(--tab); font: 700 13px/1 Barlow, sans-serif; letter-spacing: .14em; padding: 4px 10px 3px; }
     .date { position: absolute; right: 0; bottom: -16px; font: 500 12px/1 Barlow, sans-serif; letter-spacing: .06em; }
-    @keyframes ident-in { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
-    @keyframes ident-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(28px); } }
-    @keyframes meta-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
   </style>
 </head>
 <body>
   <div class="overlay" data-render-overlay>
+    <div class="ident-mask">
     <div class="ident">
       <div class="tab" id="stadium"></div>
       <div class="bar">
@@ -43,6 +41,8 @@
         <div class="side away"><span id="away-name"></span><img id="away-crest" alt=""><div class="date" id="date"></div></div>
       </div>
     </div>
+    </div>
+    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -94,6 +94,28 @@
     setText('date', text.date);
   }
   function applyAnimationTiming() {}
+  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
+  function wipePhase(t, hold, inn, outd) {
+    if (t < inn) return { phase: 'in', p: wipeEase(t / inn) };
+    if (t < hold) return { phase: 'hold', p: 1 };
+    return { phase: 'out', p: wipeEase(Math.min(1, (t - hold) / outd)) };
+  }
+  function seekGraphic(t, config) {
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 3.2;
+    var w = wipePhase(t, hold, 0.42, 0.36);
+    var open = w.phase === 'out' ? 1 - w.p : w.p;
+    var full = 980;
+    var vis = Math.round(full * open);
+    var mask = document.querySelector('.ident-mask');
+    var el = document.querySelector('.ident');
+    mask.style.width = vis + 'px';
+    mask.style.marginLeft = (-vis / 2) + 'px';
+    mask.style.overflow = open >= 0.999 ? 'visible' : 'hidden';
+    mask.style.visibility = open <= 0 ? 'hidden' : 'visible';
+    el.style.left = ((vis - full) / 2) + 'px';
+  }
+  window.__RENDER_USE_TEMPLATE_SEEK__ = true;
+  window.seekGraphic = seekGraphic;
   function preloadImages(urls) {
     var list = (urls || []).filter(Boolean);
     if (!list.length) return Promise.resolve();

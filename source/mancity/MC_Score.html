@@ -13,29 +13,32 @@
     }
     .overlay * { box-sizing: border-box; animation-play-state: paused; }
     .overlay.is-ready * { animation-play-state: running; }
+    .bug-mask { position: absolute; left: 36px; top: 28px; height: 68px; width: 0; overflow: hidden; }
     .bug {
-      position: absolute; left: 36px; top: 28px; height: 68px; display: flex; color: var(--ink);
+      position: relative; height: 68px; display: flex; width: max-content; color: var(--ink);
       filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
-      animation: score-in .4s cubic-bezier(.2,.8,.2,1) both;
     }
-    .overlay.is-exiting .bug { animation: score-out .35s ease both; }
+    .beat { position: absolute; width: 0; height: 0; opacity: 0; }
+    .overlay.is-exiting .beat { animation: beat-out .22s linear both; }
     .end { width: 72px; display: flex; align-items: center; justify-content: center; }
     .home { background: linear-gradient(90deg, var(--home), #4A1840); }
     .away { background: var(--away); }
     .end img { width: 52px; height: 60px; object-fit: contain; }
     .mid { display: flex; align-items: center; gap: 12px; padding: 0 14px; background: var(--ground); font: 800 42px/1 "Barlow Condensed", Impact, sans-serif; }
     .mid img { width: 30px; height: 30px; object-fit: contain; }
-    @keyframes score-in { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
-    @keyframes score-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-36px); } }
+    @keyframes beat-out { from { opacity: 0; } to { opacity: 0; } }
   </style>
 </head>
 <body>
   <div class="overlay" data-render-overlay>
+    <div class="bug-mask">
     <div class="bug">
       <div class="end home"><img id="home-crest" alt=""></div>
       <div class="mid"><span id="home-score"></span><img id="league-crest" alt=""><span id="away-score"></span></div>
       <div class="end away"><img id="away-crest" alt=""></div>
     </div>
+    </div>
+    <div class="beat"></div>
   </div>
   <script>
   'use strict';
@@ -78,6 +81,27 @@
     document.getElementById('away-score').textContent = text.awayScore == null ? '' : String(text.awayScore);
   }
   function applyAnimationTiming() {}
+  function wipeEase(x) { x = Math.max(0, Math.min(1, x)); return 1 - Math.pow(1 - x, 3); }
+  function wipePhase(t, hold, inn, outd) {
+    if (t < inn) return { phase: 'in', p: wipeEase(t / inn) };
+    if (t < hold) return { phase: 'hold', p: 1 };
+    return { phase: 'out', p: wipeEase(Math.min(1, (t - hold) / outd)) };
+  }
+  function seekGraphic(t, config) {
+    var hold = config.animation && config.animation.hold != null ? Number(config.animation.hold) : 3;
+    var w = wipePhase(t, hold, 0.2, 0.22);
+    var open = w.phase === 'out' ? 1 - w.p : w.p;
+    var mask = document.querySelector('.bug-mask');
+    var bug = document.querySelector('.bug');
+    mask.style.width = '800px';
+    var full = bug.scrollWidth || 280;
+    var vis = Math.round(full * open);
+    mask.style.width = vis + 'px';
+    mask.style.overflow = open >= 0.999 ? 'visible' : 'hidden';
+    mask.style.visibility = vis <= 0 ? 'hidden' : 'visible';
+  }
+  window.__RENDER_USE_TEMPLATE_SEEK__ = true;
+  window.seekGraphic = seekGraphic;
   function preloadImages(urls) {
     var list = (urls || []).filter(Boolean);
     if (!list.length) return Promise.resolve();
