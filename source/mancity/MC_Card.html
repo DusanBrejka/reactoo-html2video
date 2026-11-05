@@ -33,7 +33,7 @@
     .namebar img { width: 40px; height: 52px; object-fit: contain; }
     .name { font: 600 36px/1 Barlow, "Arial Narrow", sans-serif; }
     .num {
-      position: absolute; left: 118px; top: -10px; color: var(--ink);
+      position: absolute; left: 118px; top: -10px; z-index: 2; color: var(--ink);
       font: 700 15px/1 Barlow, sans-serif;
     }
     .tag {
@@ -70,7 +70,7 @@
     pageTitle: 'Manchester City card',
     colors: { bar: '#0C2F6E', ink: '#ffffff', label: '#E8F000', 'label-ink': '#102044' },
     images: { crest: 'crest-liverpool.png' },
-    text: { number: "47'", name: 'Ryan Gravenberch', label: 'YELLOW CARD' },
+    text: { number: "23'", name: 'Ryan Gravenberch', label: 'YELLOW CARD' },
     animation: { hold: 3.6, tailPad: 0.2 }
   };
   function resolveAssetUrl(url) {

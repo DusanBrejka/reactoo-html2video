@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manchester City goal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&amp;family=Barlow+Condensed:wght@700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    .overlay {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+      font-family: Barlow, "Arial Narrow", sans-serif;
+      --bar: #0C2F6E; --block: #071833; --ink: #ffffff; --accent: #3C9FE6; --accent-ink: #102044; --muted: rgba(255,255,255,.55);
+    }
+    .overlay * { box-sizing: border-box; }
+
+    /* Whole graphic: centred lower third, square corners like the MC card */
+    .goal {
+      position: absolute; left: 50%; bottom: 72px; width: 1014px; height: 168px; margin-left: -507px;
+      display: flex; filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
+    }
+    .wipe { position: absolute; inset: 0; display: flex; clip-path: inset(0 100% 0 0); }
+
+    /* Crest block */
+    .crest-block {
+      position: relative; width: 168px; height: 168px; flex: none;
+      background: linear-gradient(160deg, #123b85 0%, var(--block) 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .crest-block::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--accent); transform-origin: left center; transform: scaleX(var(--strip, 0)); }
+    .crest-block img { width: 112px; height: 112px; object-fit: contain; }
+
+    /* Scorer */
+    .scorer {
+      position: relative; flex: 1; height: 168px; background: var(--bar); color: var(--ink);
+      padding: 30px 28px 0 32px;
+    }
+    .event { display: flex; align-items: center; gap: 16px; height: 38px; }
+    .event-label { font: 700 32px/1 "Barlow Condensed", Barlow, "Arial Narrow", sans-serif; letter-spacing: .04em; color: var(--accent); }
+    .minute { background: var(--accent); color: var(--accent-ink); font: 700 21px/1 Barlow, sans-serif; padding: 7px 12px 6px; }
+    .name { display: flex; align-items: baseline; gap: 16px; margin-top: 18px; white-space: nowrap; }
+    .first { font: 500 32px/1 Barlow, "Arial Narrow", sans-serif; color: rgba(255,255,255,.75); }
+    .last { font: 800 62px/1 "Barlow Condensed", Barlow, "Arial Narrow", sans-serif; letter-spacing: .01em; text-transform: uppercase; }
+
+    /* Divider + score */
+    .divider { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); transform-origin: center top; }
+    .score {
+      position: relative; width: 414px; flex: none; height: 168px; background: var(--bar); color: var(--ink);
+      display: flex; flex-direction: column; justify-content: center; gap: 20px; padding: 0 30px 12px 34px;
+    }
+    .team { display: flex; align-items: baseline; gap: 16px; height: 48px; }
+    .team img { width: 42px; height: 48px; object-fit: contain; align-self: center; position: relative; top: 10px; }
+    .team .tname { flex: 1; font: 600 27px/1 Barlow, "Arial Narrow", sans-serif; white-space: nowrap; }
+    .team .goals { font: 800 54px/1 "Barlow Condensed", Barlow, "Arial Narrow", sans-serif; width: 56px; flex: none; text-align: center; font-variant-numeric: tabular-nums; }
+    .team .goals .n { display: inline-block; }
+    .team .goals .n.one { margin-left: -4px; } /* optical centring: a '1' has its weight on the right */
+    .team.lead .goals { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="overlay" data-render-overlay>
+    <div class="goal">
+      <div class="wipe" id="wipe">
+        <div class="crest-block" id="crest-block"><img id="crest" alt=""></div>
+        <div class="scorer">
+          <div class="event"><span class="event-label" id="event"></span><span class="minute" id="minute"></span></div>
+          <div class="name"><span class="first" id="first"></span><span class="last" id="last"></span></div>
+        </div>
+        <div class="score">
+          <div class="divider" id="divider"></div>
+          <div class="team" id="team1"><img id="team1-crest" alt=""><span class="tname" id="team1-name"></span><span class="goals" id="team1-score"></span></div>
+          <div class="team" id="team2"><img id="team2-crest" alt=""><span class="tname" id="team2-name"></span><span class="goals" id="team2-score"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  'use strict';
+  const TEMPLATE_DIR = 'https://reactoo-html2video-dev3-458780930208.s3.eu-central-1.amazonaws.com/templates/mancity/';
+  const GRAPHIC = {
+    pageTitle: 'Manchester City goal',
+    colors: { bar: '#0C2F6E', block: '#071833', ink: '#ffffff', accent: '#3C9FE6', 'accent-ink': '#102044' },
+    images: { crest: 'crest-city.png', team1Crest: 'crest-city.png', team2Crest: 'crest-liverpool.png' },
+    text: {
+      event: 'GOAL', minute: "38'", firstName: 'Erling', lastName: 'Haaland',
+      team1: 'Manchester City', team1Score: '1', team2: 'Liverpool', team2Score: '0'
+    },
+    animation: { hold: 4.2, exit: 0.7, tailPad: 0.2 }
+  };
+  function resolveAssetUrl(url) {
+    if (!url) return '';
+    if (/^(?:https?:|data:|file:|blob:)/i.test(url)) return url;
+    var base = (location.protocol === 'file:') ? location.href : TEMPLATE_DIR;
+    try { return new URL(url, base).href; } catch (e) { return base + encodeURIComponent(url); }
+  }
+  function setImg(id, url) {
+    var el = document.getElementById(id); url = resolveAssetUrl(url);
+    if (url) { el.src = url; el.style.display = ''; } else { el.removeAttribute('src'); el.style.display = 'none'; }
+  }
+  function setText(id, v) { document.getElementById(id).textContent = v == null ? '' : String(v); }
+  function setScore(id, v) {
+    var box = document.getElementById(id), str = v == null ? '' : String(v);
+    box.innerHTML = ''; var n = document.createElement('span');
+    n.className = 'n' + (/^1$/.test(str) ? ' one' : ''); n.textContent = str; box.appendChild(n);
+  }
+  function applyGraphic(config) {
+    config = config || GRAPHIC;
+    document.title = config.pageTitle || GRAPHIC.pageTitle;
+    var overlay = document.querySelector('.overlay'), c = config.colors || {};
+    Object.keys(c).forEach(function (k) { if (c[k]) overlay.style.setProperty('--' + k, c[k]); });
+    var im = config.images || {}, t = config.text || {};
+    setImg('crest', im.crest); setImg('team1-crest', im.team1Crest); setImg('team2-crest', im.team2Crest);
+    setText('event', t.event); setText('minute', t.minute);
+    setText('first', t.firstName); setText('last', t.lastName);
+    setText('team1-name', t.team1); setScore('team1-score', t.team1Score);
+    setText('team2-name', t.team2); setScore('team2-score', t.team2Score);
+    // Leading team gets the accent score; trailing team is dimmed. Level = both normal.
+    var s1 = parseInt(t.team1Score, 10), s2 = parseInt(t.team2Score, 10);
+    var r1 = document.getElementById('team1'), r2 = document.getElementById('team2');
+    r1.className = 'team' + (s1 > s2 ? ' lead' : s1 < s2 ? ' trail' : '');
+    r2.className = 'team' + (s2 > s1 ? ' lead' : s2 < s1 ? ' trail' : '');
+  }
+
+  // ---- Deterministic timeline (used for both live playback and frame rendering) ----
+  function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+  function easeOut(x) { x = clamp01(x); return 1 - Math.pow(1 - x, 3); }
+  function easeIn(x) { x = clamp01(x); return x * x * x; }
+  function back(x) { x = clamp01(x); var s = 1.6; return 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2); }
+  function win(t, d, dur) { return clamp01((t - d) / dur); }
+  function el(id) { return document.getElementById(id); }
+  function seekFrame(t, config) {
+    config = config || GRAPHIC;
+    var a = config.animation || {}, hold = a.hold != null ? +a.hold : 4.2, ex = a.exit != null ? +a.exit : 0.7;
+    var exiting = t >= hold, u = exiting ? (t - hold) / ex : 0;
+    // Panel wipe (left to right in, right to left out)
+    var open = exiting ? (u < 0.3 ? 1 : 1 - easeIn((u - 0.3) / 0.7)) : easeOut(t / 0.8);
+    el('wipe').style.clipPath = 'inset(0 ' + ((1 - open) * 100).toFixed(3) + '% 0 0)';
+    el('wipe').style.visibility = open <= 0 ? 'hidden' : 'visible';
+    // Content fades out together during the first part of the exit
+    var out = exiting ? 1 - clamp01(u / 0.35) : 1;
+    function pop(id, d, dur, dy) {
+      var p = win(t, d, dur), s = back(p), n = el(id);
+      n.style.opacity = String(Math.min(clamp01(p * 1.6), out));
+      n.style.transform = 'translateY(' + ((1 - s) * (dy || 10)).toFixed(2) + 'px) scale(' + (0.7 + 0.3 * s).toFixed(3) + ')';
+    }
+    function slide(id, d, dur, dx) {
+      var p = easeOut(win(t, d, dur)), n = el(id);
+      n.style.opacity = String(Math.min(p, out));
+      n.style.transform = 'translateX(' + ((1 - p) * dx).toFixed(2) + 'px)';
+    }
+    pop('crest', 0.25, 0.5, 0);
+    el('crest-block').style.setProperty('--strip', String(exiting ? out : easeOut(win(t, 0.45, 0.45))));
+    slide('event', 0.38, 0.45, -18);
+    pop('minute', 0.5, 0.4, -8);
+    slide('first', 0.52, 0.5, 26);
+    slide('last', 0.6, 0.55, 30);
+    var dv = exiting ? out : easeOut(win(t, 0.55, 0.45));
+    el('divider').style.transform = 'scaleY(' + dv.toFixed(3) + ')';
+    slide('team1', 0.68, 0.45, 20);
+    slide('team2', 0.78, 0.45, 20);
+    pop('team1-score', 0.9, 0.45, 10);
+    pop('team2-score', 0.98, 0.45, 10);
+  }
+  function totalDuration(config) {
+    var a = (config || GRAPHIC).animation || {};
+    return (a.hold != null ? +a.hold : 4.2) + (a.exit != null ? +a.exit : 0.7) + (a.tailPad != null ? +a.tailPad : 0.2);
+  }
+  window.__RENDER_USE_TEMPLATE_SEEK__ = true;
+  window.seekGraphic = function (t, config) { window.__EXTERNAL_SEEK__ = true; seekFrame(t, config || GRAPHIC); };
+  window.applyGraphic = applyGraphic;
+  window.applyAnimationTiming = function () {};
+  window.GRAPHIC = GRAPHIC;
+
+  function preloadImages(urls) {
+    return Promise.all(urls.filter(Boolean).map(function (u) {
+      return new Promise(function (r) { var i = new Image(); i.onload = i.onerror = r; i.src = u; });
+    }));
+  }
+  function startAnimation(config) {
+    if (window.__RENDER_WAIT_FOR_GO__) { window.__RENDER_ARMED__ = true; return; }
+    var start = performance.now(), end = totalDuration(config);
+    (function tick(now) {
+      if (window.__EXTERNAL_SEEK__) return;
+      var t = (now - start) / 1000;
+      seekFrame(Math.min(t, end), config);
+      if (t < end) requestAnimationFrame(tick);
+    })(start);
+  }
+  function initGraphic(config) {
+    applyGraphic(config);
+    seekFrame(0, config);
+    var go = function () {
+      var urls = Object.values(config.images || {}).map(resolveAssetUrl);
+      Promise.all([preloadImages(urls), document.fonts ? document.fonts.ready : null]).then(function () { startAnimation(config); });
+    };
+    if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+  }
+  initGraphic(GRAPHIC);
+  </script>
+</body>
+</html>
